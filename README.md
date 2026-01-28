@@ -33,3 +33,8 @@ Profile helps users manage their activity on UniSwap. Its features show their ac
 
 ## Users
 There will be two users involved in the application, sellers and buyers. Buyers will be able to browse listing, search and filter items they desire, bookmark listings they want to save for later, message sellers to ask questions about their products, and view previous purchase history. For sellers, they can create listings, upload photos of their items, manage prices, message buyers, and view previous sales history. Each user will see different features on the app based on whether they are looking to sell or buy a product.
+
+## Wireframe
+<p align="center">
+  <img src="images/wireframe.png" width="750">
+</p>
