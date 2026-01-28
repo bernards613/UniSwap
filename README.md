@@ -1,4 +1,4 @@
-# UniSwap
+# UniSwap - Senior Capstone
 
 <p align="center">
   <img src="images/uniswap2.png" width="500">
