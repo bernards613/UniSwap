@@ -1,0 +1,12 @@
+# Ignore virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Environment variables
+.env
+
+# Node modules from frontend
+frontend/node_modules/
