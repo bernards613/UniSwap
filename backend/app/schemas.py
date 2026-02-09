@@ -1,19 +1,19 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class UserCreate(BaseModel):
-    FirstName: str
-    LastName: str
-    Username: str
-    Password: str
-    Institution: str
+    firstname: str
+    lastname: str
+    username: str
+    password: str
+    institution: Optional[str] = None
 
 class User(BaseModel):
-    UserID: int
-    FirstName: str
-    LastName: str
-    Username: str
-    ProfilePictureURL: str | None
-    Institution: str
+    userid: int
+    firstname: str
+    lastname: str
+    username: str
+    institution: Optional[str] = None
 
     class Config:
         orm_mode = True
