@@ -11,6 +11,7 @@ class User(Base):
     PasswordHash = Column(String, nullable=False)
     FirstName = Column(String, nullable=False)
     LastName = Column(String, nullable=False)
+    Username = Column(String, unique=True, nullable=False)
     ProfilePictureURL = Column(String)
     Institution = Column(String)
 
