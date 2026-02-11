@@ -1,4 +1,4 @@
-UniSwap – Oakland University Dorm Marketplace
+# UniSwap – Oakland University Dorm Marketplace
 
 UniSwap is a web-based marketplace designed for Oakland University students to buy, sell, and exchange dorm-related items—especially during move-in and move-out periods.
 The platform enables student-to-student, on-campus exchanges with simple item posting, messaging, and local pickup coordination.
