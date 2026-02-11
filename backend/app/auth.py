@@ -37,7 +37,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    user = db.query(models.User).filter(models.User.UserID == user_id).first()
+    user = db.query(models.User).filter(models.User.userid == user_id).first()
 
     if user is None:
         raise HTTPException(status_code=401, detail="User no longer exists")
