@@ -7,7 +7,7 @@ from app.auth import hash_password, verify_password, create_access_token
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
-@router.post("/register", response_model=schemas.User)
+@router.post("/register")
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     existing = db.query(models.User).filter(models.User.username == user.username).first()
@@ -28,7 +28,14 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_user)
 
-    return db_user  # return the object directly, FastAPI will serialize using response_model
+    return {
+    "message": "User created successfully",
+    "userid": db_user.userid,
+    "username": db_user.username,
+    "firstname": db_user.firstname,
+    "lastname": db_user.lastname,
+    "institution": db_user.institution
+}
 
 
 @router.post("/login")
@@ -40,7 +47,18 @@ def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get
 
     token = create_access_token({"user_id": user.userid})
 
-    return {"access_token": token, "token_type": "bearer"}
+    return {
+    "message": "Login successful",
+    "access_token": token,
+    "token_type": "bearer",
+    "user": {
+        "userid": user.userid,
+        "username": user.username,
+        "firstname": user.firstname,
+        "lastname": user.lastname,
+        "institution": user.institution
+    }
+}
 
 
 @router.get("/{user_id}", response_model=schemas.User)
