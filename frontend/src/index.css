@@ -28,41 +28,37 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: #ffffff;
+  color: #213547;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+html.dark-mode body {
+  background-color: #121212;
+  color: #ffffff;
+}
+
+.settings {
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  background: transparent; /* removes grey box */
 }
 
 button {
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: none;
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
   cursor: pointer;
   transition: border-color 0.25s;
 }
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+button:hover {
+  opacity: 0.8;
 }
