@@ -1,34 +1,43 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import { Settings } from './Settings'
+import { Login } from './Login'
+import { CreateAccount } from './CreateAccount'
 
 function App() {
-  const [count, setCount] = useState(0)
-  
+  const [currentPage, setCurrentPage] = useState('login')
+
+  const handleSwitchToCreateAccount = () => {
+    setCurrentPage('createAccount')
+  }
+
+  const handleSwitchToLogin = () => {
+    setCurrentPage('login')
+  }
+
+  const handleLoginSuccess = (data) => {
+    console.log('Login successful in App:', data)
+    // Simple success handling - just log to console
+  }
+
+  const handleAccountCreated = (data) => {
+    console.log('Account created in App:', data)
+    // Simple success handling - just log to console
+    // Optionally switch back to login page
+    setCurrentPage('login')
+  }
+
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Joseph was here</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      {currentPage === 'login' ? (
+        <Login 
+          onSwitchToCreateAccount={handleSwitchToCreateAccount}
+          onLoginSuccess={handleLoginSuccess}
+        />
+      ) : (
+        <CreateAccount 
+          onSwitchToLogin={handleSwitchToLogin}
+          onAccountCreated={handleAccountCreated}
+        />
+      )}
     </>
   )
 }
