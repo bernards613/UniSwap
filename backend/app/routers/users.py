@@ -9,33 +9,47 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 @router.post("/register")
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    try:
+        # Check if username already exists
+        existing = db.query(models.User).filter(models.User.username == user.username).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="Username already taken")
 
-    existing = db.query(models.User).filter(models.User.username == user.username).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Username already taken")
+        # Hash the password
+        hashed_pw = hash_password(user.password)
 
-    hashed_pw = hash_password(user.password)
+        # Create new user
+        db_user = models.User(
+            firstname=user.firstname,
+            lastname=user.lastname,
+            username=user.username,
+            passwordhash=hashed_pw,
+            institution=user.institution,
+        )
 
-    db_user = models.User(
-        firstname=user.firstname,
-        lastname=user.lastname,
-        username=user.username,
-        passwordhash=hashed_pw,
-        institution=user.institution,
-    )
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
 
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-
-    return {
-    "message": "User created successfully",
-    "userid": db_user.userid,
-    "username": db_user.username,
-    "firstname": db_user.firstname,
-    "lastname": db_user.lastname,
-    "institution": db_user.institution
-}
+        return {
+            "message": "User created successfully",
+            "userid": db_user.userid,
+            "username": db_user.username,
+            "firstname": db_user.firstname,
+            "lastname": db_user.lastname,
+            "institution": db_user.institution
+        }
+    except HTTPException:
+        # Re-raise HTTP exceptions (like username already taken)
+        raise
+    except Exception as e:
+        # Rollback on any other error
+        db.rollback()
+        print(f"Error creating user: {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Error creating user: {str(e)}"
+        )
 
 @router.post("/login")
 def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
