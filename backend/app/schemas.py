@@ -16,7 +16,7 @@ class User(BaseModel):
     institution: Optional[str] = None
 
     class Config:
-        from_attributes = True  # Changed from orm_mode for Pydantic v2
+        from_attributes = True
 
 class ListingCreate(BaseModel):
     category: str

@@ -3,7 +3,7 @@ Database initialization script.
 Creates all database tables defined in models.py
 """
 from app.database import Base, engine
-from app import models  # Import all models to register them with Base
+from app import models
 
 def init_db():
     """Create all database tables"""
