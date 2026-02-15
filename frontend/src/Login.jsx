@@ -118,3 +118,5 @@ export function Login({ onSwitchToCreateAccount, onLoginSuccess }) {
     </div>
   )
 }
+
+export default Login;
