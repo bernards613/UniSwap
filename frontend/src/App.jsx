@@ -1,16 +1,20 @@
 import { useState } from "react";
 import Login from "./Login.jsx";
 import { CreateAccount } from "./CreateAccount.jsx";
+import Settings from "./Settings.jsx";
 
 function App() {
-  const [screen, setScreen] = useState("login"); // "login" or "create"
+  const [screen, setScreen] = useState("login"); 
 
   return (
     <>
       {screen === "login" && (
         <Login
           onSwitchToCreateAccount={() => setScreen("create")}
-          onLoginSuccess={(data) => console.log("Logged in:", data)}
+          onLoginSuccess={(data) => {
+            console.log("Logged in:", data);
+            setScreen("settings");   // ⬅️ GO TO SETTINGS AFTER LOGIN
+          }}
         />
       )}
 
@@ -22,6 +26,10 @@ function App() {
             setScreen("login");
           }}
         />
+      )}
+
+      {screen === "settings" && (
+        <Settings />
       )}
     </>
   );
