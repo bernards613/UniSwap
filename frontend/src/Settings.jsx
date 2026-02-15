@@ -8,10 +8,11 @@ export function Settings() {
   );
 
   useEffect(() => {
-    const theme = isDarkMode ? "dark" : "light";
-    localStorage.setItem("theme", theme);
-    document.documentElement.classList.toggle("dark-mode", isDarkMode);
-  }, [isDarkMode]);
+  const theme = isDarkMode ? "dark" : "light";
+  localStorage.setItem("theme", theme);
+  document.documentElement.classList.toggle("dark-mode", isDarkMode);
+}, [isDarkMode]);
+
 
   const toggleDarkMode = () => {
     setIsDarkMode(prev => !prev);
@@ -28,4 +29,4 @@ export function Settings() {
   );
 }
 
-export default Settings;
+export default Settings; 
