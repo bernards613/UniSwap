@@ -5,7 +5,8 @@ import Settings from "./Settings.jsx";
 import Listings from "./Listings.jsx";
 
 function App() {
-  const [screen, setScreen] = useState("login"); 
+  const [screen, setScreen] = useState("login");
+  const [token, setToken] = useState(null);
 
   return (
     <>
@@ -14,6 +15,7 @@ function App() {
           onSwitchToCreateAccount={() => setScreen("create")}
           onLoginSuccess={(data) => {
             console.log("Logged in:", data);
+            setToken(data.access_token);
             setScreen("listings");
           }}
         />
@@ -30,7 +32,7 @@ function App() {
       )}
 
       {screen === "listings" && (
-        <Listings />
+        <Listings token={token} />
       )}
 
       {screen === "settings" && (

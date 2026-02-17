@@ -52,6 +52,8 @@ export function Login({ onSwitchToCreateAccount, onLoginSuccess }) {
         return
       }
 
+      localStorage.setItem("access_token", data.access_token);
+
       // Simple success handling - console log the response
       console.log('Login successful:', data)
       
