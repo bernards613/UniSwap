@@ -23,11 +23,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-
-  display: flex;
   justify-content: center;
-  align-items: center;
-
   background-color: var(--bg);
   color: var(--text);
 }
@@ -37,15 +33,9 @@ a {
   color: var(--link);
   text-decoration: inherit;
 }
+
 a:hover {
   color: var(--link-hover);
-}
-
-.settings {
-  padding: 30px;
-  border-radius: 12px;
-  text-align: center;
-  background: transparent;
 }
 
 button {
@@ -61,4 +51,195 @@ button {
 
 button:hover {
   opacity: 0.8;
+}
+
+/* Header */
+.header {
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--text);
+}
+
+.navbar {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  color: var(--link);
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+}
+
+.nav-btn:hover {
+  color: var(--link-hover);
+}
+
+/* Settings */
+.settings {
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  background: transparent;
+}
+
+.settings button {
+  background: var(--link);
+  color: white;
+}
+
+.settings button:hover {
+  background: var(--link-hover);
+}
+
+/* Listings */
+.listings-container {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.listings-header {
+  flex-direction: column;
+  margin-bottom: 2rem;
+}
+
+.listings-header h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.create-listing-button {
+  padding: 0.75rem 1.25rem;
+  background: var(--link);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.create-listing-button:hover {
+  background: var(--link-hover);
+}
+
+.listings-page {
+  text-align: center;
+  padding: 20px;
+}
+
+.center-title {
+  margin-bottom: 10px;
+}
+
+.create-button {
+  background-color: var(--link);
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.create-button:hover {
+  background-color: var(--link-hover);
+}
+
+.listings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.listing-card {
+  background: white;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.listing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.delete-btn:hover {
+  color: red;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+}
+
+.modal-card {
+  background: white;
+  width: 100%;
+  max-width: 450px;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.modal-card h2 {
+  margin-top: 0;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.submit-button {
+  background: var(--link);
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.submit-button:hover {
+  background: var(--link-hover);
+}
+
+.cancel-button {
+  background: #ccc;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }

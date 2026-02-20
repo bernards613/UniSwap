@@ -21,8 +21,7 @@ export function Settings() {
   return (
     <div className="settings">
       <h1>Settings</h1>
-      <p>Settings Page</p>
-      <button onClick={toggleDarkMode}>
+      <button className="create-listing-button" onClick={toggleDarkMode}>
         {isDarkMode ? 'Light Mode' : 'Dark Mode'}
       </button>
     </div>

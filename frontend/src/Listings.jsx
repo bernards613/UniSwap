@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import "./listings.css";
 import CreateListingModal from "./CreateListingModal.jsx";
 
 export default function Listings() {

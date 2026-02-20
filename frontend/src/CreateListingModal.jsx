@@ -1,5 +1,4 @@
 import { useState } from "react";
-import "./listings.css";
 
 export default function CreateListingModal({ onClose, token }) {
   const [formData, setFormData] = useState({
