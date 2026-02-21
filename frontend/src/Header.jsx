@@ -1,7 +1,19 @@
 export default function Header({ currentScreen, onNavigate }) {
   return (
     <header className="header">
-      <h1 className="logo">UniSwap</h1>
+      <img
+        src="/UniswapLogoBackgroundless.png"
+        alt="UniSwap Logo"
+        className="header-logo-img"
+        onClick={() => {
+          if (currentScreen !== "login" && currentScreen !== "create") {
+            onNavigate("listings");
+          }
+        }}
+        style={{
+          cursor: currentScreen !== "login" && currentScreen !== "create" ? "pointer" : "default"
+        }}
+      />
 
       <nav className="navbar">
         {currentScreen !== "login" && currentScreen !== "create" && (

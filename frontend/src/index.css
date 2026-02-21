@@ -56,16 +56,16 @@ button:hover {
 /* Header */
 .header {
   padding: 1rem 2rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #484848;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.logo {
-  margin: 0;
-  font-size: 1.5rem;
-  color: var(--text);
+.header-logo-img {
+  height: 90px;
+  width: auto;
+  object-fit: contain;
 }
 
 .navbar {
