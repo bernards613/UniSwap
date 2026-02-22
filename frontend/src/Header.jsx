@@ -11,16 +11,31 @@ export default function Header({ currentScreen, onNavigate }) {
           }
         }}
         style={{
-          cursor: currentScreen !== "login" && currentScreen !== "create" ? "pointer" : "default"
+          cursor:
+            currentScreen !== "login" && currentScreen !== "create"
+              ? "pointer"
+              : "default",
         }}
       />
 
       <nav className="navbar">
         {currentScreen !== "login" && currentScreen !== "create" && (
           <>
-            <button className="nav-btn" onClick={() => onNavigate("listings")}>Listings</button>
-            <button className="nav-btn" onClick={() => onNavigate("settings")}>Settings</button>
-            <button className="nav-btn" onClick={() => onNavigate("login")}>Logout</button>
+            <button className="nav-btn" onClick={() => onNavigate("listings")}>
+              Listings
+            </button>
+
+            <button className="nav-btn" onClick={() => onNavigate("mylistings")}>
+              My Listings
+            </button>
+
+            <button className="nav-btn" onClick={() => onNavigate("settings")}>
+              Settings
+            </button>
+
+            <button className="nav-btn" onClick={() => onNavigate("login")}>
+              Logout
+            </button>
           </>
         )}
       </nav>

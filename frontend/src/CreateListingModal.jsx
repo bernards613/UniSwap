@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function CreateListingModal({ onClose, token }) {
+export default function CreateListingModal({ onClose }) {
   const [formData, setFormData] = useState({
     category: "",
     location: "",
@@ -12,7 +12,6 @@ export default function CreateListingModal({ onClose, token }) {
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-
     if (name === "photo") {
       setFormData({ ...formData, photo: files[0] });
     } else {
@@ -21,56 +20,49 @@ export default function CreateListingModal({ onClose, token }) {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
+    try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("You are not logged in.");
+        return;
+      }
 
-  try {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+      const response = await fetch(`${apiBaseUrl}/listings/create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          category: formData.category,
+          location: formData.location,
+          price: parseFloat(formData.price),
+          description: formData.description,
+          status: formData.status,
+          photo: null,
+        }),
+      });
 
-    // 🔥 Get token from localStorage
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      alert("You are not logged in.");
-      return;
+      const data = await response.json();
+      if (!response.ok) {
+        alert(data.detail || "Error creating listing");
+        return;
+      }
+
+      alert("Listing created!");
+      onClose();
+    } catch (error) {
+      console.error("Create listing error:", error);
+      alert("Network error while creating listing.");
     }
-
-    // Send JSON request (what FastAPI expects)
-    const response = await fetch(`${apiBaseUrl}/listings/create`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // include JWT
-      },
-      body: JSON.stringify({
-        category: formData.category,
-        location: formData.location,
-        price: parseFloat(formData.price),
-        description: formData.description,
-        status: formData.status,
-        photo: null // backend expects this field but you're not uploading files in JSON mode
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      alert(data.detail || "Error creating listing");
-      return;
-    }
-
-    alert("Listing created!");
-    onClose();
-  } catch (error) {
-    console.error("Create listing error:", error);
-    alert("Network error while creating listing.");
-  }
-};
-
+  };
 
   return (
     <div className="modal-overlay">
       <div className="modal-card">
         <h2>Create Listing</h2>
-
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Category</label>
@@ -83,22 +75,18 @@ export default function CreateListingModal({ onClose, token }) {
               <option value="Other">Other</option>
             </select>
           </div>
-
           <div className="form-group">
             <label>Location (Dorm, Room #)</label>
             <input type="text" name="location" value={formData.location} onChange={handleChange} required />
           </div>
-
           <div className="form-group">
             <label>Price ($)</label>
             <input type="number" name="price" value={formData.price} onChange={handleChange} required min="0" />
           </div>
-
           <div className="form-group">
             <label>Description</label>
             <textarea name="description" value={formData.description} onChange={handleChange} required rows="3"></textarea>
           </div>
-
           <div className="form-group">
             <label>Status</label>
             <select name="status" value={formData.status} onChange={handleChange}>
@@ -107,12 +95,10 @@ export default function CreateListingModal({ onClose, token }) {
               <option>Pending</option>
             </select>
           </div>
-
           <div className="form-group">
             <label>Photo</label>
             <input type="file" name="photo" accept="image/*" onChange={handleChange} />
           </div>
-
           <div className="modal-buttons">
             <button type="submit" className="submit-button">Create Listing</button>
             <button type="button" className="cancel-button" onClick={onClose}>Cancel</button>
