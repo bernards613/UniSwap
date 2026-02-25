@@ -24,3 +24,5 @@ class ListingCreate(BaseModel):
     photo: str | None = None
     price: float
     description: str | None = None
+
+

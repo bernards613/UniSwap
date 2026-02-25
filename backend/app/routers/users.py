@@ -73,6 +73,44 @@ def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get
     }
 }
 
+@router.post("/bookmark/{itemid}")
+def bookmark_listing(
+    itemid: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+
+    # Check listing exists
+    listing = db.query(models.Listing).filter(models.Listing.itemid == itemid).first()
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+
+    # Prevent bookmarking your own listing
+    if listing.sellerid == current_user.userid:
+        raise HTTPException(status_code=400, detail="You cannot bookmark your own listing")
+
+    # Prevent duplicate bookmarks
+    existing = db.query(models.Bookmark).filter(
+        models.Bookmark.userid == current_user.userid,
+        models.Bookmark.itemid == itemid
+    ).first()
+
+    if existing:
+        raise HTTPException(status_code=400, detail="Already bookmarked")
+
+    # Create bookmark
+    bookmark = models.Bookmark(
+        userid=current_user.userid,
+        itemid=itemid,
+        saveddate=datetime.utcnow()
+    )
+
+    db.add(bookmark)
+    db.commit()
+    db.refresh(bookmark)
+
+    return {"message": "Bookmarked", "bookmarkid": bookmark.bookmarkid}
+
 @router.get("/me", response_model=schemas.User)
 def get_me(current_user: models.User = Depends(get_current_user)):
     return current_user
