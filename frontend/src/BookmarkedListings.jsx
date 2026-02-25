@@ -5,16 +5,31 @@ export default function BookmarkedListings({ token }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/users/bookmarks", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setBookmarks(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [token]);
+  if (!token) return;
+
+  async function loadBookmarks() {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/users/bookmarks", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        console.error("Failed to fetch bookmarks:", await response.text());
+        return;
+      }
+
+      const data = await response.json();
+      console.log("BOOKMARKED LISTINGS:", data);
+      setBookmarks(data);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  loadBookmarks();
+}, [token]);
 
   if (loading) return <p>Loading...</p>;
 
