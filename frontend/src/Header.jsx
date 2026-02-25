@@ -29,6 +29,21 @@ export default function Header({ currentScreen, onNavigate }) {
               My Listings
             </button>
 
+            {/* ⭐ NEW BUTTONS HERE */}
+            <button
+              className="nav-btn"
+              onClick={() => onNavigate("bookmarked")}
+            >
+              Bookmarked
+            </button>
+
+            <button
+              className="nav-btn"
+              onClick={() => onNavigate("purchases")}
+            >
+              Purchase History
+            </button>
+
             <button className="nav-btn" onClick={() => onNavigate("settings")}>
               Settings
             </button>
