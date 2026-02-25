@@ -5,6 +5,8 @@ import Settings from "./Settings.jsx";
 import Listings from "./Listings.jsx";
 import Header from "./Header.jsx";
 import MyListings from "./MyListings.jsx";
+import BookmarkedListings from "./BookmarkedListings.jsx";
+import PurchaseHistory from "./PurchaseHistory.jsx";
 
 function App() {
   const [screen, setScreenState] = useState("login");
@@ -58,6 +60,8 @@ function App() {
       {screen === "listings" && <Listings token={token} />}
       {screen === "mylistings" && <MyListings />}
       {screen === "settings" && <Settings />}
+      {screen === "bookmarked" && <BookmarkedListings token={token} />}
+      {screen === "purchases" && <PurchaseHistory token={token} />}
     </>
   );
 }
