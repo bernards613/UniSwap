@@ -51,7 +51,7 @@ export default function Listings() {
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
-      const response = await fetch(`${apiBaseUrl}/transactions/purchase/${itemid}`, {
+      const response = await fetch(`http://localhost:8000/transactions/purchase/${itemid}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -76,7 +76,7 @@ export default function Listings() {
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
-      const response = await fetch(`${apiBaseUrl}/users/bookmark/${itemid}`, {
+      const response = await fetch(`http://localhost:8000/users/bookmark/${itemid}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
