@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import CreateListingModal from "./CreateListingModal.jsx";
-import './marketplace.css'
+import "./marketplace.css";
 
 const CATEGORIES = ["All", "Furniture", "Appliances", "Decor", "Electronics", "Other"];
 const SORT_OPTIONS = [
@@ -14,7 +14,7 @@ export default function Listings() {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Filter / search state
+  // Filters
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [maxPrice, setMaxPrice] = useState("");
@@ -22,6 +22,7 @@ export default function Listings() {
   const [statusFilter, setStatusFilter] = useState("All");
 
   const token = localStorage.getItem("token");
+  const currentUserId = Number(localStorage.getItem("userid"));
 
   const loadListings = async () => {
     setLoading(true);
@@ -45,26 +46,56 @@ export default function Listings() {
     loadListings();
   }, []);
 
-  const deleteListing = async (itemid) => {
-    if (!confirm("Delete this listing?")) return;
+  // PURCHASE HANDLER
+  const handlePurchase = async (itemid) => {
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
-      const response = await fetch(`${apiBaseUrl}/listings/delete/${itemid}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+
+      const response = await fetch(`${apiBaseUrl}/transactions/purchase/${itemid}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
+
       const data = await response.json();
+
       if (response.ok) {
-        setListings((prev) => prev.filter((l) => l.itemid !== itemid));
+        alert("Purchase successful!");
+        loadListings();
       } else {
-        alert(data.detail || "Could not delete listing");
+        alert(data.detail || "Purchase failed");
       }
     } catch (err) {
-      console.error("Delete error:", err);
+      console.error("Purchase error:", err);
     }
   };
 
-  //filtering and sorting
+  // BOOKMARK HANDLER
+  const handleBookmark = async (itemid) => {
+    try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+
+      const response = await fetch(`${apiBaseUrl}/users/bookmark/${itemid}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Bookmarked!");
+      } else {
+        alert(data.detail || "Bookmark failed");
+      }
+    } catch (err) {
+      console.error("Bookmark error:", err);
+    }
+  };
+
+  // FILTER LOGIC
   const filtered = useMemo(() => {
     let result = [...listings];
 
@@ -92,7 +123,6 @@ export default function Listings() {
 
     if (sortBy === "price_asc") result.sort((a, b) => a.price - b.price);
     else if (sortBy === "price_desc") result.sort((a, b) => b.price - a.price);
-    // filter "newest" keeps original fetch order
 
     return result;
   }, [listings, search, selectedCategory, statusFilter, maxPrice, sortBy]);
@@ -107,7 +137,7 @@ export default function Listings() {
   return (
     <div className="mp-page">
 
-      {/* Search Bar */}
+      {/* SEARCH BAR */}
       <div className="mp-hero">
         <div className="mp-search-wrap">
           <span className="mp-search-icon">🔍</span>
@@ -119,15 +149,15 @@ export default function Listings() {
             onChange={(e) => setSearch(e.target.value)}
           />
           {search && (
-            <button className="mp-search-clear" onClick={() => setSearch("")}>✕</button>
+            <button className="mp-search-clear" onClick={() => setSearch("")}>
+              ✕
+            </button>
           )}
         </div>
       </div>
 
-      {/* Filter bar */}
+      {/* FILTERS */}
       <div className="mp-filter-bar">
-
-        {/* Categories */}
         <div className="mp-filter-group">
           {CATEGORIES.map((cat) => (
             <button
@@ -141,19 +171,13 @@ export default function Listings() {
         </div>
 
         <div className="mp-filter-right">
-          {/* Status */}
-          <select
-            className="mp-select"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
+          <select className="mp-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="All">All Statuses</option>
             <option value="Available">Available</option>
             <option value="Pending">Pending</option>
             <option value="Sold">Sold</option>
           </select>
 
-          {/* Max price */}
           <div className="mp-price-wrap">
             <span className="mp-price-symbol">$</span>
             <input
@@ -166,30 +190,29 @@ export default function Listings() {
             />
           </div>
 
-          {/* Sort */}
-          <select
-            className="mp-select"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-          >
+          <select className="mp-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
             {SORT_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
             ))}
           </select>
         </div>
       </div>
 
-      {/* Results bar and also create button */}
+      {/* RESULTS HEADER */}
       <div className="mp-results-bar">
         <span className="mp-results-count">
-          {loading ? "Loading..." : `${filtered.length} listing${filtered.length !== 1 ? "s" : ""} found`}
+          {loading
+            ? "Loading..."
+            : `${filtered.length} listing${filtered.length !== 1 ? "s" : ""} found`}
         </span>
         <button className="mp-create-btn" onClick={() => setShowModal(true)}>
           + Post a Listing
         </button>
       </div>
 
-      {/* Grid */}
+      {/* GRID */}
       {loading ? (
         <div className="mp-loading">
           <div className="mp-spinner"></div>
@@ -204,12 +227,7 @@ export default function Listings() {
       ) : (
         <div className="mp-grid">
           {filtered.map((item, i) => (
-            <div
-              className="mp-card"
-              key={item.itemid}
-              style={{ animationDelay: `${i * 40}ms` }}
-            >
-              {/* Card image holder until picture is added */}
+            <div className="mp-card" key={item.itemid} style={{ animationDelay: `${i * 40}ms` }}>
               <div className="mp-card-img">
                 <span className="mp-card-category-icon">{categoryIcon(item.category)}</span>
               </div>
@@ -217,10 +235,7 @@ export default function Listings() {
               <div className="mp-card-body">
                 <div className="mp-card-top">
                   <span className="mp-card-category">{item.category}</span>
-                  <span
-                    className="mp-card-status"
-                    style={{ color: statusColor(item.status) }}
-                  >
+                  <span className="mp-card-status" style={{ color: statusColor(item.status) }}>
                     ● {item.status}
                   </span>
                 </div>
@@ -234,13 +249,30 @@ export default function Listings() {
                   <span className="mp-card-price">${parseFloat(item.price).toFixed(2)}</span>
                 </div>
 
-                <button
-                  className="mp-delete-btn"
-                  onClick={() => deleteListing(item.itemid)}
-                  title="Delete listing"
-                >
-                  🗑
-                </button>
+                {/* PURCHASE + BOOKMARK BUTTONS */}
+                {item.userid !== currentUserId && (
+                  <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                    
+                    {item.status === "Available" && (
+                      <button
+                        className="mp-create-btn"
+                        style={{ flex: 1 }}
+                        onClick={() => handlePurchase(item.itemid)}
+                      >
+                        Purchase
+                      </button>
+                    )}
+
+                    <button
+                      className="mp-create-btn"
+                      style={{ flex: 1, background: "#6366f1" }}
+                      onClick={() => handleBookmark(item.itemid)}
+                    >
+                      Bookmark
+                    </button>
+                  </div>
+                )}
+
               </div>
             </div>
           ))}
