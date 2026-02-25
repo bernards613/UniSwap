@@ -7,7 +7,7 @@ export default function BookmarkedListings({ token }) {
   useEffect(() => {
     async function loadBookmarks() {
       try {
-        const res = await fetch("http://127.0.0.1:8000/users/bookmarks", {
+        const res = await fetch("http://localhost:8000/users/bookmarks", {
           headers: { Authorization: `Bearer ${token}` },
         });
 

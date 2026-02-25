@@ -7,7 +7,7 @@ export default function PurchaseHistory({ token }) {
   useEffect(() => {
     async function loadPurchases() {
       try {
-        const res = await fetch("http://127.0.0.1:8000/transactions/history", {
+        const res = await fetch("http://localhost:8000/transactions/history", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
