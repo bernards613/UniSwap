@@ -127,3 +127,61 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
+@router.get("/bookmarks")
+def get_bookmarked_listings(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+
+    bookmarks = (
+        db.query(models.Bookmark)
+        .filter(models.Bookmark.userid == current_user.userid)
+        .join(models.Listing, models.Bookmark.itemid == models.Listing.itemid)
+        .all()
+    )
+
+    results = []
+    for b in bookmarks:
+        results.append({
+            "bookmarkid": b.bookmarkid,
+            "itemid": b.item.itemid,
+            "category": b.item.category,
+            "location": b.item.location,
+            "photo": b.item.photo,
+            "price": b.item.price,
+            "description": b.item.description,
+            "sellerid": b.item.sellerid,
+            "saveddate": b.saveddate,
+        })
+
+    return results
+
+@router.get("/purchases")
+def get_purchase_history(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+
+    purchases = (
+        db.query(models.Transaction)
+        .filter(models.Transaction.buyerid == current_user.userid)
+        .join(models.Listing, models.Transaction.itemid == models.Listing.itemid)
+        .all()
+    )
+
+    results = []
+    for p in purchases:
+        results.append({
+            "transactionid": p.transactionid,
+            "itemid": p.item.itemid,
+            "category": p.item.category,
+            "location": p.item.location,
+            "photo": p.item.photo,
+            "price": p.item.price,
+            "description": p.item.description,
+            "sellerid": p.item.sellerid,
+            "transactiondate": p.transactiondate
+        })
+
+    return results
