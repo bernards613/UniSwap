@@ -1,50 +1,48 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function BookmarkedListings({ token }) {
-  const [bookmarks, setBookmarks] = useState([]);
+  const [listings, setListings] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-  if (!token) return;
+    async function loadBookmarks() {
+      try {
+        const res = await fetch("http://127.0.0.1:8000/users/bookmarks", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-  async function loadBookmarks() {
-    try {
-      const response = await fetch("http://127.0.0.1:8000/users/bookmarks", {
-        headers: {
-          Authorization: `Bearer ${token}`
+        if (!res.ok) {
+          console.error("Bookmark fetch failed:", await res.text());
+          setListings([]);
+          setLoading(false);
+          return;
         }
-      });
 
-      if (!response.ok) {
-        console.error("Failed to fetch bookmarks:", await response.text());
-        return;
+        const data = await res.json();
+        setListings(data);
+        setLoading(false);
+      } catch (err) {
+        console.error(err);
+        setLoading(false);
       }
-
-      const data = await response.json();
-      console.log("BOOKMARKED LISTINGS:", data);
-      setBookmarks(data);
-    } catch (err) {
-      console.error(err);
     }
-  }
 
-  loadBookmarks();
-}, [token]);
+    loadBookmarks();
+  }, [token]);
 
   if (loading) return <p>Loading...</p>;
 
-  return (
-    <div className="listing-container">
-      <h2>Your Bookmarked Listings</h2>
-      {bookmarks.length === 0 && <p>No bookmarks yet.</p>}
+  if (!listings || listings.length === 0)
+    return <p>No bookmarked listings yet.</p>;
 
-      {bookmarks.map((item) => (
-        <div key={item.itemid} className="listing-item">
-          {item.photo && <img src={item.photo} className="listing-img" />}
-          <h3>{item.category}</h3>
-          <p>{item.location}</p>
-          <p>${item.price}</p>
+  return (
+    <div className="listings-container">
+      <h2>Bookmarked Listings</h2>
+      {listings.map((item) => (
+        <div key={item.itemid} className="listing-card">
+          <img src={item.photo} alt="" />
           <p>{item.description}</p>
+          <p>${item.price}</p>
         </div>
       ))}
     </div>

@@ -1,36 +1,48 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function PurchaseHistory({ token }) {
-  const [purchases, setPurchases] = useState([]);
+  const [purchases, setPurchases] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/users/purchases", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((data) => {
+    async function loadPurchases() {
+      try {
+        const res = await fetch("http://127.0.0.1:8000/transactions/history", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) {
+          console.error("Purchase history fetch failed:", await res.text());
+          setPurchases([]); 
+          setLoading(false);
+          return;
+        }
+
+        const data = await res.json();
         setPurchases(data);
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      } catch (err) {
+        console.error(err);
+        setLoading(false);
+      }
+    }
+
+    loadPurchases();
   }, [token]);
 
   if (loading) return <p>Loading...</p>;
 
-  return (
-    <div className="listing-container">
-      <h2>Purchase History</h2>
-      {purchases.length === 0 && <p>No purchases yet.</p>}
+  if (!purchases || purchases.length === 0)
+    return <p>You haven't purchased anything yet.</p>;
 
+  return (
+    <div className="listings-container">
+      <h2>Purchase History</h2>
       {purchases.map((item) => (
-        <div key={item.transactionid} className="listing-item">
-          {item.photo && <img src={item.photo} className="listing-img" />}
-          <h3>{item.category}</h3>
-          <p>{item.location}</p>
-          <p>${item.price}</p>
+        <div key={item.itemid} className="listing-card">
+          <img src={item.photo} alt="" />
           <p>{item.description}</p>
-          <small>Purchased on: {item.transactiondate}</small>
+          <p>${item.price}</p>
         </div>
       ))}
     </div>
