@@ -29,18 +29,11 @@ export default function Header({ currentScreen, onNavigate }) {
               My Listings
             </button>
 
-            {/* ⭐ NEW BUTTONS HERE */}
-            <button
-              className="nav-btn"
-              onClick={() => onNavigate("bookmarked")}
-            >
-              Bookmarked
+            <button className="nav-btn" onClick={() => onNavigate("bookmarks")}>
+              Bookmarked Listings
             </button>
 
-            <button
-              className="nav-btn"
-              onClick={() => onNavigate("purchases")}
-            >
+            <button className="nav-btn" onClick={() => onNavigate("purchases")}>
               Purchase History
             </button>
 
@@ -48,7 +41,11 @@ export default function Header({ currentScreen, onNavigate }) {
               Settings
             </button>
 
-            <button className="nav-btn" onClick={() => onNavigate("login")}>
+            <button className="nav-btn" onClick={() => {
+              localStorage.removeItem("token");
+              localStorage.removeItem("userId");
+              onNavigate("login");
+            }}>
               Logout
             </button>
           </>
