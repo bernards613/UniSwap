@@ -60,7 +60,7 @@ function App() {
       {screen === "listings" && <Listings token={token} />}
       {screen === "mylistings" && <MyListings />}
       {screen === "settings" && <Settings />}
-      {screen === "bookmarked" && <BookmarkedListings token={token} />}
+      {screen === "bookmarks" && <BookmarkedListings token={token} />}
       {screen === "purchases" && <PurchaseHistory token={token} />}
     </>
   );

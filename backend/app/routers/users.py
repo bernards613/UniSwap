@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime
 from app.database import get_db
@@ -131,29 +131,29 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 @router.get("/bookmarks")
 def get_bookmarked_listings(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(auth.get_current_user)
 ):
-
     bookmarks = (
         db.query(models.Bookmark)
+        .options(joinedload(models.Bookmark.item))  # <- ensure Listing is loaded
         .filter(models.Bookmark.userid == current_user.userid)
-        .join(models.Listing, models.Bookmark.itemid == models.Listing.itemid)
         .all()
     )
 
     results = []
     for b in bookmarks:
-        results.append({
-            "bookmarkid": b.bookmarkid,
-            "itemid": b.item.itemid,
-            "category": b.item.category,
-            "location": b.item.location,
-            "photo": b.item.photo,
-            "price": b.item.price,
-            "description": b.item.description,
-            "sellerid": b.item.sellerid,
-            "saveddate": b.saveddate,
-        })
+        if b.item:
+            results.append({
+                "bookmarkid": b.bookmarkid,
+                "itemid": b.item.itemid,
+                "category": b.item.category,
+                "location": b.item.location,
+                "photo": b.item.photo,
+                "price": b.item.price,
+                "description": b.item.description,
+                "sellerid": b.item.sellerid,
+                "saveddate": b.saveddate,
+            })
 
     return results
 
@@ -162,26 +162,26 @@ def get_purchase_history(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-
     purchases = (
         db.query(models.Transaction)
+        .options(joinedload(models.Transaction.item))  # <- ensure Listing is loaded
         .filter(models.Transaction.buyerid == current_user.userid)
-        .join(models.Listing, models.Transaction.itemid == models.Listing.itemid)
         .all()
     )
 
     results = []
     for p in purchases:
-        results.append({
-            "transactionid": p.transactionid,
-            "itemid": p.item.itemid,
-            "category": p.item.category,
-            "location": p.item.location,
-            "photo": p.item.photo,
-            "price": p.item.price,
-            "description": p.item.description,
-            "sellerid": p.item.sellerid,
-            "transactiondate": p.transactiondate
-        })
+        if p.item:
+            results.append({
+                "transactionid": p.transactionid,
+                "itemid": p.item.itemid,
+                "category": p.item.category,
+                "location": p.item.location,
+                "photo": p.item.photo,
+                "price": p.item.price,
+                "description": p.item.description,
+                "sellerid": p.item.sellerid,
+                "transactiondate": p.transactiondate
+            })
 
     return results
