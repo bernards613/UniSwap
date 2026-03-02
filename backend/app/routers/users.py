@@ -75,7 +75,8 @@ def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get
         "username": user.username,
         "firstname": user.firstname,
         "lastname": user.lastname,
-        "institution": user.institution
+        "institution": user.institution,
+        "profilepictureurl": user.profilepictureurl
     }
 }
 
@@ -120,6 +121,37 @@ def bookmark_listing(
 @router.get("/me", response_model=schemas.User)
 def get_me(current_user: models.User = Depends(get_current_user)):
     return current_user
+
+
+@router.put("/profile-picture")
+def update_profile_picture(
+    data: schemas.ProfilePictureUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    current_user.profilepictureurl = data.profilepictureurl
+    db.commit()
+    db.refresh(current_user)
+    return {"message": "Profile picture updated", "profilepictureurl": current_user.profilepictureurl}
+
+
+@router.put("/profile", response_model=schemas.User)
+def update_profile(
+    data: schemas.ProfileUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    if data.firstname is not None:
+        current_user.firstname = data.firstname
+    if data.lastname is not None:
+        current_user.lastname = data.lastname
+    if data.institution is not None:
+        current_user.institution = data.institution
+    
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
 
 @router.get("/bookmarks")
 def get_bookmarked_listings(

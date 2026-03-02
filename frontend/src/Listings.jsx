@@ -9,7 +9,7 @@ const SORT_OPTIONS = [
   { label: "Price: High to Low", value: "price_desc" },
 ];
 
-export default function Listings() {
+export default function Listings({ onMessageSeller }) {
   const [listings, setListings] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -22,7 +22,7 @@ export default function Listings() {
   const [statusFilter, setStatusFilter] = useState("All");
 
   const token = localStorage.getItem("token");
-  const currentUserId = Number(localStorage.getItem("userid"));
+  const currentUserId = Number(localStorage.getItem("userId"));
 
   const loadListings = async () => {
     setLoading(true);
@@ -99,13 +99,18 @@ export default function Listings() {
   const filtered = useMemo(() => {
     let result = [...listings];
 
+    // Hide own listings from main listings page
+    result = result.filter((l) => l.sellerid !== currentUserId);
+
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(
         (l) =>
           l.category?.toLowerCase().includes(q) ||
           l.description?.toLowerCase().includes(q) ||
-          l.location?.toLowerCase().includes(q)
+          l.location?.toLowerCase().includes(q) ||
+          l.seller_firstname?.toLowerCase().includes(q) ||
+          l.seller_lastname?.toLowerCase().includes(q)
       );
     }
 
@@ -125,7 +130,7 @@ export default function Listings() {
     else if (sortBy === "price_desc") result.sort((a, b) => b.price - a.price);
 
     return result;
-  }, [listings, search, selectedCategory, statusFilter, maxPrice, sortBy]);
+  }, [listings, search, selectedCategory, statusFilter, maxPrice, sortBy, currentUserId]);
 
   const statusColor = (status) => {
     if (status === "Available") return "#16a34a";
@@ -242,6 +247,10 @@ export default function Listings() {
 
                 <p className="mp-card-desc">{item.description}</p>
 
+                <div className="mp-card-seller">
+                  👤 {item.seller_firstname} {item.seller_lastname}
+                </div>
+
                 <div className="mp-card-footer">
                   <div className="mp-card-meta">
                     <span className="mp-card-location">📍 {item.location}</span>
@@ -249,14 +258,14 @@ export default function Listings() {
                   <span className="mp-card-price">${parseFloat(item.price).toFixed(2)}</span>
                 </div>
 
-                {/* PURCHASE + BOOKMARK BUTTONS */}
-                {item.userid !== currentUserId && (
-                  <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                {/* PURCHASE + BOOKMARK + MESSAGE BUTTONS */}
+                {item.sellerid !== currentUserId && (
+                  <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
                     
                     {item.status === "Available" && (
                       <button
                         className="mp-create-btn"
-                        style={{ flex: 1 }}
+                        style={{ flex: 1, minWidth: "80px" }}
                         onClick={() => handlePurchase(item.itemid)}
                       >
                         Purchase
@@ -265,10 +274,18 @@ export default function Listings() {
 
                     <button
                       className="mp-create-btn"
-                      style={{ flex: 1, background: "#fde68a", color: "#1a1a1a" }}
+                      style={{ flex: 1, minWidth: "80px", background: "#fde68a", color: "#1a1a1a" }}
                       onClick={() => handleBookmark(item.itemid)}
                     >
                       Bookmark
+                    </button>
+
+                    <button
+                      className="mp-create-btn"
+                      style={{ flex: 1, minWidth: "80px", background: "#10b981" }}
+                      onClick={() => onMessageSeller && onMessageSeller(item.sellerid, item.itemid, item.description, item.price)}
+                    >
+                      💬 Message
                     </button>
                   </div>
                 )}

@@ -86,11 +86,31 @@ export function CreateAccount({ onSwitchToLogin, onAccountCreated }) {
         return
       }
 
-      // Simple success handling - console log the response
       console.log('Account created successfully:', data)
       
-      if (onAccountCreated) {
-        onAccountCreated(data)
+      // Auto-login after registration
+      const loginResponse = await fetch(`${apiBaseUrl}/users/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          username: formData.username.trim(),
+          password: formData.password,
+        }),
+      })
+
+      if (loginResponse.ok) {
+        const loginData = await loginResponse.json()
+        console.log('Auto-login successful:', loginData)
+        if (onAccountCreated) {
+          onAccountCreated({ ...data, ...loginData, autoLogin: true })
+        }
+      } else {
+        // If auto-login fails, just redirect to login page
+        if (onAccountCreated) {
+          onAccountCreated(data)
+        }
       }
     } catch (err) {
       console.error('Create account error:', err)

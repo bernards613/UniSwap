@@ -14,9 +14,21 @@ class User(BaseModel):
     lastname: str
     username: str
     institution: Optional[str] = None
+    profilepictureurl: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+
+class ProfilePictureUpdate(BaseModel):
+    profilepictureurl: str
+
+
+class ProfileUpdate(BaseModel):
+    firstname: Optional[str] = None
+    lastname: Optional[str] = None
+    institution: Optional[str] = None
+
 
 class ListingCreate(BaseModel):
     category: str

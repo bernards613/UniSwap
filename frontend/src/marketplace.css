@@ -254,13 +254,23 @@
 .mp-card-desc {
   font-size: 0.9rem;
   color: #444;
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.5rem;
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.mp-card-seller {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+html.dark-mode .mp-card-seller {
+  color: #aaa;
 }
 
 .mp-card-footer {
