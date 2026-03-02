@@ -10,8 +10,9 @@
 
   --bg: #ffffff;
   --text: #213547;
-  --link: #646cff;
-  --link-hover: #535bf2;
+  --link: #e0ae3a;
+  --link-hover: #e0b030;
+  --accent-purple: #6366f1;
 }
 
 html.dark-mode {
@@ -71,19 +72,22 @@ button:hover {
 .navbar {
   display: flex;
   gap: 1.5rem;
+  align-items: center;
 }
 
 .nav-btn {
   background: none;
   border: none;
-  color: var(--link);
-  font-weight: 500;
+  color: #e0ae3a;
+  font-weight: 600;
   cursor: pointer;
   padding: 0;
+  font-size: 0.95rem;
 }
 
 .nav-btn:hover {
-  color: var(--link-hover);
+  color: #e0b030;
+  opacity: 1;
 }
 
 /* Settings */
@@ -96,7 +100,8 @@ button:hover {
 
 .settings button {
   background: var(--link);
-  color: white;
+  color: #1a1a1a;
+  font-weight: 600;
 }
 
 .settings button:hover {
@@ -125,10 +130,11 @@ button:hover {
 .create-listing-button {
   padding: 0.75rem 1.25rem;
   background: var(--link);
-  color: white;
+  color: #1a1a1a;
   border: none;
   border-radius: 6px;
   font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -147,12 +153,13 @@ button:hover {
 
 .create-button {
   background-color: var(--link);
-  color: white;
+  color: #1a1a1a;
   border: none;
   padding: 12px 18px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 16px;
+  font-weight: 600;
   margin-bottom: 20px;
 }
 
@@ -225,7 +232,8 @@ button:hover {
 
 .submit-button {
   background: var(--link);
-  color: white;
+  color: #1a1a1a;
+  font-weight: 600;
   padding: 0.6rem 1.2rem;
   border: none;
   border-radius: 4px;
@@ -242,4 +250,62 @@ button:hover {
   border: none;
   border-radius: 4px;
   cursor: pointer;
+}
+
+/* ── Purchase History Summary ── */
+.ph-summary {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  background: linear-gradient(135deg, #fdf3c8, #fce98a);
+  border-radius: 12px;
+  padding: 1.25rem 2rem;
+  margin-top: 1.5rem;
+}
+
+.ph-summary-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.ph-summary-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #888;
+  font-weight: 600;
+}
+
+.ph-summary-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.ph-summary-divider {
+  width: 1px;
+  height: 40px;
+  background: rgba(0,0,0,0.15);
+}
+
+.ph-purchased-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #16a34a;
+  background: #dcfce7;
+  padding: 0.2rem 0.5rem;
+  border-radius: 50px;
+}
+
+html.dark-mode .ph-summary {
+  background: linear-gradient(135deg, #2a2510, #3a3210);
+}
+
+html.dark-mode .ph-summary-value {
+  color: #fff;
+}
+
+html.dark-mode .ph-summary-label {
+  color: #aaa;
 }

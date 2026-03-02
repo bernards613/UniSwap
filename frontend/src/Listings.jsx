@@ -140,7 +140,7 @@ export default function Listings() {
       {/* SEARCH BAR */}
       <div className="mp-hero">
         <div className="mp-search-wrap">
-          <span className="mp-search-icon">🔍</span>
+          <span className="mp-search-icon">◯</span>
           <input
             className="mp-search-input"
             type="text"
@@ -265,7 +265,7 @@ export default function Listings() {
 
                     <button
                       className="mp-create-btn"
-                      style={{ flex: 1, background: "#6366f1" }}
+                      style={{ flex: 1, background: "#fde68a", color: "#1a1a1a" }}
                       onClick={() => handleBookmark(item.itemid)}
                     >
                       Bookmark
