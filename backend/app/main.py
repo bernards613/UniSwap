@@ -13,9 +13,9 @@ def create_tables():
     try:
         print("Initializing database tables...")
         Base.metadata.create_all(bind=engine)
-        print("✓ Database tables initialized successfully!")
+        print("Database tables initialized successfully!")
     except Exception as e:
-        print(f"✗ Error initializing database tables: {e}")
+        print(f"Error initializing database tables: {e}")
         print("Please check your database connection and try again.")
 
 app.add_middleware(
