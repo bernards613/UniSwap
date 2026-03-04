@@ -106,7 +106,9 @@ function App() {
 
   return (
     <>
-      <Header currentScreen={screen} onNavigate={setScreen} userData={userData} />
+      {screen !== "login" && screen !== "create" && (
+        <Header currentScreen={screen} onNavigate={setScreen} userData={userData} />
+      )}
       {screen === "login" && (
         <Login
           onSwitchToCreateAccount={() => setScreen("create")}
