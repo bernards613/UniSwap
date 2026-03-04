@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import EditListingModal from "./EditListingModal.jsx";
+import ConfirmModal from "./ConfirmModal.jsx";
+import { useToast, ToastContainer } from "./Toast.jsx";
 import "./marketplace.css";
 
 export default function MyListings() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingItem, setEditingItem] = useState(null);
+  const [confirmConfig, setConfirmConfig] = useState(null);
+  const { toasts, showToast } = useToast();
 
   const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
@@ -49,24 +53,34 @@ export default function MyListings() {
     setEditingItem(null);
   };
 
-  const handleDelete = async (itemid) => {
-    if (!confirm("Delete this listing?")) return;
-    try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
-      const response = await fetch(`${apiBaseUrl}/listings/delete/${itemid}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setListings((prev) => prev.filter((l) => l.itemid !== itemid));
-      } else {
-        alert(data.detail || "Could not delete listing");
-      }
-    } catch (err) {
-      console.error("Delete error:", err);
-      alert("Network error while deleting.");
-    }
+  const handleDelete = (itemid) => {
+    setConfirmConfig({
+      message: "Delete this listing?",
+      subtext: "This cannot be undone.",
+      confirmLabel: "Delete",
+      danger: true,
+      onCancel: () => setConfirmConfig(null),
+      onConfirm: async () => {
+        setConfirmConfig(null);
+        try {
+          const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+          const response = await fetch(`${apiBaseUrl}/listings/delete/${itemid}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await response.json();
+          if (response.ok) {
+            setListings((prev) => prev.filter((l) => l.itemid !== itemid));
+            showToast("Listing deleted");
+          } else {
+            showToast(data.detail || "Could not delete listing", "error");
+          }
+        } catch (err) {
+          console.error("Delete error:", err);
+          showToast("Network error while deleting", "error");
+        }
+      },
+    });
   };
 
   return (
@@ -146,6 +160,8 @@ export default function MyListings() {
           onSave={handleSaveEdit}
         />
       )}
+      {confirmConfig && <ConfirmModal {...confirmConfig} />}
+      <ToastContainer toasts={toasts} />
     </div>
   );
 }

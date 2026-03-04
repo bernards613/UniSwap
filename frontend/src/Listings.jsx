@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import CreateListingModal from "./CreateListingModal.jsx";
+import { useToast, ToastContainer } from "./Toast.jsx";
 import "./marketplace.css";
 
 const CATEGORIES = ["All", "Furniture", "Appliances", "Decor", "Electronics", "Other"];
@@ -23,6 +24,7 @@ export default function Listings({ onMessageSeller }) {
 
   const token = localStorage.getItem("token");
   const currentUserId = Number(localStorage.getItem("userId"));
+  const { toasts, showToast } = useToast();
 
   const loadListings = async () => {
     setLoading(true);
@@ -61,13 +63,14 @@ export default function Listings({ onMessageSeller }) {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Purchase successful!");
+        showToast("Purchase successful! 🎉");
         loadListings();
       } else {
-        alert(data.detail || "Purchase failed");
+        showToast(data.detail || "Purchase failed", "error");
       }
     } catch (err) {
       console.error("Purchase error:", err);
+      showToast("Network error during purchase", "error");
     }
   };
 
@@ -86,12 +89,13 @@ export default function Listings({ onMessageSeller }) {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Bookmarked!");
+        showToast("Listing bookmarked! 🔖");
       } else {
-        alert(data.detail || "Bookmark failed");
+        showToast(data.detail || "Bookmark failed", "error");
       }
     } catch (err) {
       console.error("Bookmark error:", err);
+      showToast("Network error during bookmark", "error");
     }
   };
 
@@ -305,6 +309,7 @@ export default function Listings({ onMessageSeller }) {
           }}
         />
       )}
+      <ToastContainer toasts={toasts} />
     </div>
   );
 }

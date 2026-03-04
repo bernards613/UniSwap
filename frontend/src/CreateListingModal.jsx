@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useToast, ToastContainer } from "./Toast.jsx";
 
 export default function CreateListingModal({ onClose }) {
+  const { toasts, showToast } = useToast();
   const [formData, setFormData] = useState({
     category: "",
     location: "",
@@ -25,7 +27,7 @@ export default function CreateListingModal({ onClose }) {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
       const token = localStorage.getItem("token");
       if (!token) {
-        alert("You are not logged in.");
+        showToast("You are not logged in.", "error");
         return;
       }
 
@@ -47,15 +49,15 @@ export default function CreateListingModal({ onClose }) {
 
       const data = await response.json();
       if (!response.ok) {
-        alert(data.detail || "Error creating listing");
+        showToast(data.detail || "Error creating listing", "error");
         return;
       }
 
-      alert("Listing created!");
-      onClose();
+      showToast("Listing created! 🎉");
+      setTimeout(() => onClose(), 1200);
     } catch (error) {
       console.error("Create listing error:", error);
-      alert("Network error while creating listing.");
+      showToast("Network error while creating listing.", "error");
     }
   };
 
@@ -105,6 +107,7 @@ export default function CreateListingModal({ onClose }) {
           </div>
         </form>
       </div>
+      <ToastContainer toasts={toasts} />
     </div>
   );
 }

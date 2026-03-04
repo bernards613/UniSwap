@@ -1,10 +1,14 @@
 import { useState, useEffect } from "react";
+import ConfirmModal from "./ConfirmModal.jsx";
+import { useToast, ToastContainer } from "./Toast.jsx";
 import "./marketplace.css";
 
 export default function BookmarkedListings({ token }) {
   const [bookmarks, setBookmarks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [confirmConfig, setConfirmConfig] = useState(null);
+  const { toasts, showToast } = useToast();
 
   useEffect(() => {
     if (!token) return;
@@ -31,20 +35,32 @@ export default function BookmarkedListings({ token }) {
       });
   }, [token]);
 
-  const removeBookmark = async (bookmarkid) => {
-    if (!confirm("Remove this bookmark?")) return;
-    try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
-      const response = await fetch(`${apiBaseUrl}/users/bookmark/${bookmarkid}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (response.ok) {
-        setBookmarks((prev) => prev.filter((b) => b.bookmarkid !== bookmarkid));
-      }
-    } catch (err) {
-      console.error("Remove bookmark error:", err);
-    }
+  const removeBookmark = (bookmarkid) => {
+    setConfirmConfig({
+      message: "Remove this bookmark?",
+      confirmLabel: "Remove",
+      danger: true,
+      onCancel: () => setConfirmConfig(null),
+      onConfirm: async () => {
+        setConfirmConfig(null);
+        try {
+          const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+          const response = await fetch(`${apiBaseUrl}/users/bookmark/${bookmarkid}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (response.ok) {
+            setBookmarks((prev) => prev.filter((b) => b.bookmarkid !== bookmarkid));
+            showToast("Bookmark removed");
+          } else {
+            showToast("Could not remove bookmark", "error");
+          }
+        } catch (err) {
+          console.error("Remove bookmark error:", err);
+          showToast("Network error", "error");
+        }
+      },
+    });
   };
 
   const statusColor = (status) => {
@@ -126,6 +142,8 @@ export default function BookmarkedListings({ token }) {
           ))}
         </div>
       )}
+      {confirmConfig && <ConfirmModal {...confirmConfig} />}
+      <ToastContainer toasts={toasts} />
     </div>
   );
 }
