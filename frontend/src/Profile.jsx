@@ -179,7 +179,7 @@ export default function Profile({ token, onProfilePictureUpdate }) {
     return (
       <div className="mp-page">
         <div className="mp-empty">
-          <span className="mp-empty-icon">⚠️</span>
+          <span className="mp-empty-icon"></span>
           <h3>Error</h3>
           <p>{error}</p>
         </div>

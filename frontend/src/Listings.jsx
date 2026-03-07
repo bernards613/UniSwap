@@ -63,7 +63,7 @@ export default function Listings({ onMessageSeller }) {
       const data = await response.json();
 
       if (response.ok) {
-        showToast("Purchase successful! 🎉");
+        showToast("Purchase successful!");
         loadListings();
       } else {
         showToast(data.detail || "Purchase failed", "error");
@@ -89,7 +89,7 @@ export default function Listings({ onMessageSeller }) {
       const data = await response.json();
 
       if (response.ok) {
-        showToast("Listing bookmarked! 🔖");
+        showToast("Listing bookmarked!");
       } else {
         showToast(data.detail || "Bookmark failed", "error");
       }
@@ -149,7 +149,7 @@ export default function Listings({ onMessageSeller }) {
       {/* SEARCH BAR */}
       <div className="mp-hero">
         <div className="mp-search-wrap">
-          <span className="mp-search-icon">◯</span>
+          <span className="mp-search-icon"></span>
           <input
             className="mp-search-input"
             type="text"
@@ -159,7 +159,7 @@ export default function Listings({ onMessageSeller }) {
           />
           {search && (
             <button className="mp-search-clear" onClick={() => setSearch("")}>
-              ✕
+              X
             </button>
           )}
         </div>
@@ -229,7 +229,7 @@ export default function Listings({ onMessageSeller }) {
         </div>
       ) : filtered.length === 0 ? (
         <div className="mp-empty">
-          <span className="mp-empty-icon">📦</span>
+          <span className="mp-empty-icon"></span>
           <h3>No listings found</h3>
           <p>Try adjusting your search or filters.</p>
         </div>
@@ -252,12 +252,12 @@ export default function Listings({ onMessageSeller }) {
                 <p className="mp-card-desc">{item.description}</p>
 
                 <div className="mp-card-seller">
-                  👤 {item.seller_firstname} {item.seller_lastname}
+                  {item.seller_firstname} {item.seller_lastname}
                 </div>
 
                 <div className="mp-card-footer">
                   <div className="mp-card-meta">
-                    <span className="mp-card-location">📍 {item.location}</span>
+                    <span className="mp-card-location"> {item.location}</span>
                   </div>
                   <span className="mp-card-price">${parseFloat(item.price).toFixed(2)}</span>
                 </div>
@@ -289,7 +289,7 @@ export default function Listings({ onMessageSeller }) {
                       style={{ flex: 1, minWidth: "80px", background: "#10b981" }}
                       onClick={() => onMessageSeller && onMessageSeller(item.sellerid, item.itemid, item.description, item.price)}
                     >
-                      💬 Message
+                      Message
                     </button>
                   </div>
                 )}
@@ -315,12 +315,5 @@ export default function Listings({ onMessageSeller }) {
 }
 
 function categoryIcon(cat) {
-  const icons = {
-    Furniture: "🪑",
-    Appliances: "🔌",
-    Decor: "🖼️",
-    Electronics: "💻",
-    Other: "📦",
-  };
-  return icons[cat] || "📦";
+  return cat;
 }

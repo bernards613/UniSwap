@@ -66,13 +66,13 @@ export default function PurchaseHistory({ token }) {
         </div>
       ) : error ? (
         <div className="mp-empty">
-          <span className="mp-empty-icon">⚠️</span>
+          <span className="mp-empty-icon"></span>
           <h3>Something went wrong</h3>
           <p>{error}</p>
         </div>
       ) : purchases.length === 0 ? (
         <div className="mp-empty">
-          <span className="mp-empty-icon">🛍️</span>
+          <span className="mp-empty-icon"></span>
           <h3>No purchases yet</h3>
           <p>Items you buy will appear here.</p>
         </div>
@@ -98,10 +98,10 @@ export default function PurchaseHistory({ token }) {
 
                 <div className="mp-card-footer">
                   <div className="mp-card-meta">
-                    <span className="mp-card-location">📍 {p.location}</span>
+                    <span className="mp-card-location"> {p.location}</span>
                     {p.created_at && (
                       <span className="mp-card-location">
-                        🗓 {new Date(p.created_at).toLocaleDateString()}
+                         {new Date(p.created_at).toLocaleDateString()}
                       </span>
                     )}
                   </div>
@@ -117,12 +117,5 @@ export default function PurchaseHistory({ token }) {
 }
 
 function categoryIcon(cat) {
-  const icons = {
-    Furniture: "🪑",
-    Appliances: "🔌",
-    Decor: "🖼️",
-    Electronics: "💻",
-    Other: "📦",
-  };
-  return icons[cat] || "📦";
+  return cat;
 }

@@ -44,9 +44,6 @@ export function ToastContainer({ toasts }) {
                 borderLeft: `4px solid ${c.border}`,
               }}
             >
-              <span className="toast-icon" style={{ color: c.icon }}>
-                {ICONS[t.type] || ICONS.success}
-              </span>
               <span className="toast-msg">{t.message}</span>
             </div>
           );

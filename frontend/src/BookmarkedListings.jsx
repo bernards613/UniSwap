@@ -89,13 +89,13 @@ export default function BookmarkedListings({ token }) {
         </div>
       ) : error ? (
         <div className="mp-empty">
-          <span className="mp-empty-icon">⚠️</span>
+          <span className="mp-empty-icon"></span>
           <h3>Something went wrong</h3>
           <p>{error}</p>
         </div>
       ) : bookmarks.length === 0 ? (
         <div className="mp-empty">
-          <span className="mp-empty-icon">🔖</span>
+          <span className="mp-empty-icon"></span>
           <h3>No bookmarks yet</h3>
           <p>Save listings you're interested in and they'll show up here.</p>
         </div>
@@ -125,7 +125,7 @@ export default function BookmarkedListings({ token }) {
 
                 <div className="mp-card-footer">
                   <div className="mp-card-meta">
-                    <span className="mp-card-location">📍 {b.location}</span>
+                    <span className="mp-card-location"> {b.location}</span>
                   </div>
                   <span className="mp-card-price">${parseFloat(b.price).toFixed(2)}</span>
                 </div>
@@ -149,12 +149,5 @@ export default function BookmarkedListings({ token }) {
 }
 
 function categoryIcon(cat) {
-  const icons = {
-    Furniture: "🪑",
-    Appliances: "🔌",
-    Decor: "🖼️",
-    Electronics: "💻",
-    Other: "📦",
-  };
-  return icons[cat] || "📦";
+  return cat;
 }

@@ -57,7 +57,7 @@ export default function Messages({ token, onOpenConversation }) {
   return (
     <div className="mp-page">
       <div className="mp-hero">
-        <h2 style={{ margin: 0, fontSize: "1.5rem" }}>💬 Messages</h2>
+        <h2 style={{ margin: 0, fontSize: "1.5rem" }}>Messages</h2>
         <p style={{ margin: "0.5rem 0 0", color: "#888", fontSize: "0.9rem" }}>
           Your conversations with other users
         </p>
@@ -70,7 +70,7 @@ export default function Messages({ token, onOpenConversation }) {
         </div>
       ) : error ? (
         <div className="mp-empty">
-          <span className="mp-empty-icon">⚠️</span>
+          <span className="mp-empty-icon"></span>
           <h3>Error</h3>
           <p>{error}</p>
           <button className="mp-create-btn" onClick={loadConversations} style={{ marginTop: "1rem" }}>
@@ -79,7 +79,7 @@ export default function Messages({ token, onOpenConversation }) {
         </div>
       ) : conversations.length === 0 ? (
         <div className="mp-empty">
-          <span className="mp-empty-icon">💬</span>
+          <span className="mp-empty-icon"></span>
           <h3>No messages yet</h3>
           <p>Start a conversation by messaging a seller on any listing.</p>
         </div>

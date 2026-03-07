@@ -159,7 +159,7 @@ export default function Conversation({ token, conversationId, newChatData, onBac
     return (
       <div className="mp-page">
         <div className="mp-empty">
-          <span className="mp-empty-icon">⚠️</span>
+          <span className="mp-empty-icon"></span>
           <h3>Error</h3>
           <p>{error}</p>
           <button className="mp-create-btn" onClick={onBack} style={{ marginTop: "1rem" }}>

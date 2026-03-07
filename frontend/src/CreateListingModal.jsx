@@ -53,7 +53,7 @@ export default function CreateListingModal({ onClose }) {
         return;
       }
 
-      showToast("Listing created! 🎉");
+      showToast("Listing created!");
       setTimeout(() => onClose(), 1200);
     } catch (error) {
       console.error("Create listing error:", error);

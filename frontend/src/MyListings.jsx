@@ -100,7 +100,7 @@ export default function MyListings() {
         </div>
       ) : myListings.length === 0 ? (
         <div className="mp-empty">
-          <span className="mp-empty-icon">📦</span>
+          <span className="mp-empty-icon"></span>
           <h3>No listings yet</h3>
           <p>Create a listing from the Listings page, then manage it here.</p>
         </div>
@@ -125,7 +125,7 @@ export default function MyListings() {
                 <p className="mp-card-desc">{item.description}</p>
                 <div className="mp-card-footer">
                   <div className="mp-card-meta">
-                    <span className="mp-card-location">📍 {item.location}</span>
+                    <span className="mp-card-location"> {item.location}</span>
                   </div>
                   <span className="mp-card-price">
                     ${parseFloat(item.price).toFixed(2)}
@@ -167,14 +167,7 @@ export default function MyListings() {
 }
 
 function categoryIcon(cat) {
-  const icons = {
-    Furniture: "🪑",
-    Appliances: "🔌",
-    Decor: "🖼️",
-    Electronics: "💻",
-    Other: "📦",
-  };
-  return icons[cat] || "📦";
+  return cat;
 }
 
 function statusColor(status) {
