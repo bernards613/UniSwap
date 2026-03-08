@@ -1,0 +1,493 @@
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --bg: #ffffff;
+  --text: #213547;
+  --link: #e0ae3a;
+  --link-hover: #e0b030;
+  --accent-purple: #6366f1;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html.dark-mode {
+  --bg: #121212;
+  --text: #ffffff;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  justify-content: center;
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+a {
+  font-weight: 500;
+  color: var(--link);
+  text-decoration: inherit;
+}
+
+a:hover {
+  color: var(--link-hover);
+}
+
+button {
+  border-radius: 8px;
+  border: none;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+button:hover {
+  opacity: 0.8;
+}
+
+/* Header */
+.header {
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #484848;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-logo-img {
+  height: 90px;
+  width: auto;
+  object-fit: contain;
+}
+
+.navbar {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  color: #e0ae3a;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.95rem;
+}
+
+.nav-btn:hover {
+  color: #e0b030;
+  opacity: 1;
+}
+
+/* Settings */
+.settings {
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  background: transparent;
+}
+
+.settings button {
+  background: var(--link);
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.settings button:hover {
+  background: var(--link-hover);
+}
+
+/* Listings */
+.listings-container {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.listings-header {
+  flex-direction: column;
+  margin-bottom: 2rem;
+}
+
+.listings-header h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.create-listing-button {
+  padding: 0.75rem 1.25rem;
+  background: var(--link);
+  color: #1a1a1a;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.create-listing-button:hover {
+  background: var(--link-hover);
+}
+
+.listings-page {
+  text-align: center;
+  padding: 20px;
+}
+
+.center-title {
+  margin-bottom: 10px;
+}
+
+.create-button {
+  background-color: var(--link);
+  color: #1a1a1a;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.create-button:hover {
+  background-color: var(--link-hover);
+}
+
+.listings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.listing-card {
+  background: white;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.listing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.delete-btn:hover {
+  color: red;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.modal-card {
+  background: white;
+  width: 100%;
+  max-width: 480px;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  margin: auto;
+}
+
+.modal-card h2 {
+  margin-top: 0;
+  margin-bottom: 0.25rem;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.modal-card .modal-subtitle {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.4;
+}
+
+/* Form structure */
+.form-section {
+  margin-bottom: 1.5rem;
+}
+
+.form-section:last-of-type {
+  margin-bottom: 0;
+}
+
+.form-section-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #888;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.25rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 0.35rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  color: var(--text);
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  transition: border-color 0.15s;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #999;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #f0c040;
+}
+
+.form-group select {
+  cursor: pointer;
+  appearance: auto;
+}
+
+.form-group textarea {
+  min-height: 88px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.form-hint {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.form-hint-error {
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-row .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.form-row:last-child .form-group {
+  margin-bottom: 0;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.submit-button {
+  background: var(--link);
+  color: #1a1a1a;
+  font-weight: 600;
+  padding: 0.6rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.submit-button:hover {
+  background: var(--link-hover);
+}
+
+.cancel-button {
+  background: #e2e8f0;
+  color: #333;
+  padding: 0.6rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.cancel-button:hover {
+  background: #cbd5e1;
+}
+
+@media (max-width: 520px) {
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}
+
+html.dark-mode .modal-card {
+  background: #1e1e1e;
+}
+
+html.dark-mode .modal-card h2 {
+  color: #fff;
+}
+
+html.dark-mode .modal-card .modal-subtitle {
+  color: #aaa;
+}
+
+html.dark-mode .form-group label {
+  color: #ddd;
+}
+
+html.dark-mode .form-group input,
+html.dark-mode .form-group select,
+html.dark-mode .form-group textarea {
+  background: #2a2a2a;
+  border-color: #444;
+  color: #fff;
+}
+
+html.dark-mode .form-group input::placeholder,
+html.dark-mode .form-group textarea::placeholder {
+  color: #777;
+}
+
+html.dark-mode .form-group input:focus,
+html.dark-mode .form-group select:focus,
+html.dark-mode .form-group textarea:focus {
+  border-color: #f0c040;
+}
+
+html.dark-mode .modal-buttons {
+  border-top-color: #333;
+}
+
+html.dark-mode .cancel-button {
+  background: #333;
+  color: #ddd;
+}
+
+html.dark-mode .cancel-button:hover {
+  background: #444;
+}
+
+/* ── Purchase History Summary ── */
+.ph-summary {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  background: linear-gradient(135deg, #fdf3c8, #fce98a);
+  border-radius: 12px;
+  padding: 1.25rem 2rem;
+  margin-top: 1.5rem;
+}
+
+.ph-summary-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.ph-summary-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #888;
+  font-weight: 600;
+}
+
+.ph-summary-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.ph-summary-divider {
+  width: 1px;
+  height: 40px;
+  background: rgba(0,0,0,0.15);
+}
+
+.ph-purchased-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #16a34a;
+  background: #dcfce7;
+  padding: 0.2rem 0.5rem;
+  border-radius: 50px;
+}
+
+html.dark-mode .ph-summary {
+  background: linear-gradient(135deg, #2a2510, #3a3210);
+}
+
+html.dark-mode .ph-summary-value {
+  color: #fff;
+}
+
+html.dark-mode .ph-summary-label {
+  color: #aaa;
+}
