@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text, inspect
 from app.routers import users, listings, messages, transactions, buyer_requests
 from app.database import Base, engine
@@ -73,6 +74,7 @@ app.include_router(listings.router)
 app.include_router(messages.router)
 app.include_router(transactions.router)
 app.include_router(buyer_requests.router)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.get("/")

@@ -37,6 +37,13 @@ class ListingCreate(BaseModel):
     price: float
     description: str | None = None
 
+class ListingUpdate(BaseModel):
+    category: str
+    location: str
+    photo: str | None = None
+    price: float
+    description: str | None = None
+
 
 class MessageCreate(BaseModel):
     receiverid: int

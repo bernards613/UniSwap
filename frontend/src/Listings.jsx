@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import CreateListingModal from "./CreateListingModal.jsx";
+import EditListingModal from "./EditListingModal.jsx";
 import ImageZoomModal from "./ImageZoomModal.jsx";
 import { useToast, ToastContainer } from "./Toast.jsx";
 import "./marketplace.css";
@@ -13,24 +14,27 @@ const SORT_OPTIONS = [
 
 export default function Listings({ onMessageSeller }) {
   const [listings, setListings] = useState([]);
-  const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Filters
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingListing, setEditingListing] = useState(null);
+  const [zoomImageUrl, setZoomImageUrl] = useState(null);
+
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [maxPrice, setMaxPrice] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [statusFilter, setStatusFilter] = useState("All");
 
+  const [hoveredCardId, setHoveredCardId] = useState(null);
+  const [activeActionsItemId, setActiveActionsItemId] = useState(null);
+  const [expandedDescItemId, setExpandedDescItemId] = useState(null);
+
   const token = localStorage.getItem("token");
   const currentUserId = Number(localStorage.getItem("userId"));
   const { toasts, showToast } = useToast();
-  const [activeActionsItemId, setActiveActionsItemId] = useState(null);
-  const [hoveredCardId, setHoveredCardId] = useState(null);
-  const [expandedDescItemId, setExpandedDescItemId] = useState(null);
-  const [zoomImageUrl, setZoomImageUrl] = useState(null);
 
+  // Hover handlers
   const handleCardMouseEnter = (itemid) => setHoveredCardId(itemid);
   const handleCardMouseLeave = () => {
     setHoveredCardId(null);
@@ -40,13 +44,16 @@ export default function Listings({ onMessageSeller }) {
 
   const DESC_SEE_MORE_THRESHOLD = 120;
   const isDescLong = (text) => text && text.length > DESC_SEE_MORE_THRESHOLD;
+
   const handleCardClick = (itemid) => {
     setActiveActionsItemId((prev) => (prev === itemid ? null : itemid));
   };
+
   const handleActionsBackdropClick = (e) => {
     if (e.target === e.currentTarget) setActiveActionsItemId(null);
   };
 
+  // Load all listings
   const loadListings = async () => {
     setLoading(true);
     try {
@@ -56,7 +63,7 @@ export default function Listings({ onMessageSeller }) {
       if (response.ok) {
         setListings(data);
       } else {
-        console.error("Error fetching:", data);
+        console.error("Error fetching listings:", data);
       }
     } catch (err) {
       console.error("Fetch error:", err);
@@ -69,20 +76,21 @@ export default function Listings({ onMessageSeller }) {
     loadListings();
   }, []);
 
+  // Update a listing in state after editing
+  const handleListingUpdate = (updatedListing) => {
+    setListings((prev) =>
+      prev.map((l) => (l.itemid === updatedListing.itemid ? updatedListing : l))
+    );
+  };
+
   // PURCHASE HANDLER
   const handlePurchase = async (itemid) => {
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
-
       const response = await fetch(`http://localhost:8000/transactions/purchase/${itemid}`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
       const data = await response.json();
-
       if (response.ok) {
         showToast("Purchase successful!");
         loadListings();
@@ -98,33 +106,22 @@ export default function Listings({ onMessageSeller }) {
   // BOOKMARK HANDLER
   const handleBookmark = async (itemid) => {
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
-
       const response = await fetch(`http://localhost:8000/users/bookmark/${itemid}`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
       const data = await response.json();
-
-      if (response.ok) {
-        showToast("Listing bookmarked!");
-      } else {
-        showToast(data.detail || "Bookmark failed", "error");
-      }
+      if (response.ok) showToast("Listing bookmarked!");
+      else showToast(data.detail || "Bookmark failed", "error");
     } catch (err) {
       console.error("Bookmark error:", err);
       showToast("Network error during bookmark", "error");
     }
   };
 
-  // FILTER LOGIC
+  // FILTER + SORT
   const filtered = useMemo(() => {
     let result = [...listings];
-
-    // Hide own listings from main listings page
     result = result.filter((l) => l.sellerid !== currentUserId);
 
     if (search.trim()) {
@@ -138,18 +135,9 @@ export default function Listings({ onMessageSeller }) {
           l.seller_lastname?.toLowerCase().includes(q)
       );
     }
-
-    if (selectedCategory !== "All") {
-      result = result.filter((l) => l.category === selectedCategory);
-    }
-
-    if (statusFilter !== "All") {
-      result = result.filter((l) => l.status === statusFilter);
-    }
-
-    if (maxPrice !== "" && !isNaN(parseFloat(maxPrice))) {
-      result = result.filter((l) => parseFloat(l.price) <= parseFloat(maxPrice));
-    }
+    if (selectedCategory !== "All") result = result.filter((l) => l.category === selectedCategory);
+    if (statusFilter !== "All") result = result.filter((l) => l.status === statusFilter);
+    if (maxPrice && !isNaN(parseFloat(maxPrice))) result = result.filter((l) => parseFloat(l.price) <= parseFloat(maxPrice));
 
     if (sortBy === "price_asc") result.sort((a, b) => a.price - b.price);
     else if (sortBy === "price_desc") result.sort((a, b) => b.price - a.price);
@@ -166,23 +154,18 @@ export default function Listings({ onMessageSeller }) {
 
   return (
     <div className="mp-page">
-
-      {/* SEARCH BAR */}
+      {/* SEARCH */}
       <div className="mp-hero">
         <div className="mp-search-wrap">
           <span className="mp-search-icon"></span>
           <input
             className="mp-search-input"
             type="text"
-            placeholder="Search listings by category, description, or location..."
+            placeholder="Search listings..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          {search && (
-            <button className="mp-search-clear" onClick={() => setSearch("")}>
-              X
-            </button>
-          )}
+          {search && <button className="mp-search-clear" onClick={() => setSearch("")}>X</button>}
         </div>
       </div>
 
@@ -222,9 +205,7 @@ export default function Listings({ onMessageSeller }) {
 
           <select className="mp-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
             {SORT_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
         </div>
@@ -233,131 +214,50 @@ export default function Listings({ onMessageSeller }) {
       {/* RESULTS HEADER */}
       <div className="mp-results-bar">
         <span className="mp-results-count">
-          {loading
-            ? "Loading..."
-            : `${filtered.length} listing${filtered.length !== 1 ? "s" : ""} found`}
+          {loading ? "Loading..." : `${filtered.length} listing${filtered.length !== 1 ? "s" : ""} found`}
         </span>
-        <button className="mp-create-btn" onClick={() => setShowModal(true)}>
-          + Post a Listing
-        </button>
+        <button className="mp-create-btn" onClick={() => setShowCreateModal(true)}>+ Post a Listing</button>
       </div>
 
       {/* GRID */}
       {loading ? (
-        <div className="mp-loading">
-          <div className="mp-spinner"></div>
-          <p>Loading listings...</p>
-        </div>
+        <div className="mp-loading"><div className="mp-spinner"></div><p>Loading listings...</p></div>
       ) : filtered.length === 0 ? (
-        <div className="mp-empty">
-          <span className="mp-empty-icon"></span>
-          <h3>No listings found</h3>
-          <p>Try adjusting your search or filters.</p>
-        </div>
+        <div className="mp-empty"><h3>No listings found</h3><p>Try adjusting your search or filters.</p></div>
       ) : (
         <div className="mp-grid">
           {filtered.map((item, i) => (
-            <div
-              key={item.itemid}
-              className={`mp-listing-card-wrap ${hoveredCardId === item.itemid && item.description ? "has-desc" : ""}`}
-              style={{ animationDelay: `${i * 40}ms` }}
+            <div key={item.itemid} className={`mp-listing-card-wrap ${hoveredCardId === item.itemid && item.description ? "has-desc" : ""}`} style={{ animationDelay: `${i * 40}ms` }}
               onMouseEnter={() => handleCardMouseEnter(item.itemid)}
               onMouseLeave={handleCardMouseLeave}
             >
-              <div
-                className={`mp-listing-card ${hoveredCardId === item.itemid ? "hover-hide-overlay" : ""} ${activeActionsItemId === item.itemid ? "show-actions" : ""}`}
+              <div className={`mp-listing-card ${hoveredCardId === item.itemid ? "hover-hide-overlay" : ""} ${activeActionsItemId === item.itemid ? "show-actions" : ""}`}
                 onClick={() => item.sellerid !== currentUserId && handleCardClick(item.itemid)}
               >
-                <div
-                  className="mp-listing-card-bg"
-                  style={{
-                    backgroundImage: item.photo
-                      ? `url(${item.photo})`
-                      : "none",
-                  }}
-                />
+                <div className="mp-listing-card-bg" style={{ backgroundImage: item.photo ? `url(${item.photo})` : "none" }} />
                 <div className="mp-listing-overlay">
                   <span className="mp-listing-overlay-left">{item.location}</span>
-                  <span className="mp-listing-overlay-right">
-                    ${parseFloat(item.price).toFixed(2)}
-                  </span>
+                  <span className="mp-listing-overlay-right">${parseFloat(item.price).toFixed(2)}</span>
                 </div>
+
                 {item.sellerid !== currentUserId && (
-                  <div
-                    className="mp-listing-actions"
-                    onClick={handleActionsBackdropClick}
-                  >
-                    <button
-                      type="button"
-                      className="mp-action-btn alt"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (item.photo) setZoomImageUrl(item.photo);
-                        setActiveActionsItemId(null);
-                      }}
-                    >
-                      Zoom
-                    </button>
+                  <div className="mp-listing-actions" onClick={handleActionsBackdropClick}>
+                    <button type="button" className="mp-action-btn alt" onClick={(e) => { e.stopPropagation(); if (item.photo) setZoomImageUrl(item.photo); setActiveActionsItemId(null); }}>Zoom</button>
                     {item.status === "Available" && (
-                      <button
-                        type="button"
-                        className="mp-action-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePurchase(item.itemid);
-                          setActiveActionsItemId(null);
-                        }}
-                      >
-                        Purchase
-                      </button>
+                      <button type="button" className="mp-action-btn" onClick={(e) => { e.stopPropagation(); handlePurchase(item.itemid); setActiveActionsItemId(null); }}>Purchase</button>
                     )}
-                    <button
-                      type="button"
-                      className="mp-action-btn alt"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleBookmark(item.itemid);
-                        setActiveActionsItemId(null);
-                      }}
-                    >
-                      Bookmark
-                    </button>
-                    <button
-                      type="button"
-                      className="mp-action-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onMessageSeller &&
-                          onMessageSeller(
-                            item.sellerid,
-                            item.itemid,
-                            item.description,
-                            item.price
-                          );
-                        setActiveActionsItemId(null);
-                      }}
-                    >
-                      Message
-                    </button>
+                    <button type="button" className="mp-action-btn alt" onClick={(e) => { e.stopPropagation(); handleBookmark(item.itemid); setActiveActionsItemId(null); }}>Bookmark</button>
+                    <button type="button" className="mp-action-btn" onClick={(e) => { e.stopPropagation(); onMessageSeller && onMessageSeller(item.sellerid, item.itemid, item.description, item.price); setActiveActionsItemId(null); }}>Message</button>
+                    <button type="button" className="mp-action-btn alt" onClick={(e) => { e.stopPropagation(); setEditingListing(item); setActiveActionsItemId(null); }}>Edit</button>
                   </div>
                 )}
               </div>
+
               {hoveredCardId === item.itemid && item.description && (
-                <div
-                  className={`mp-listing-card-desc ${expandedDescItemId === item.itemid ? "expanded" : ""}`}
-                >
+                <div className={`mp-listing-card-desc ${expandedDescItemId === item.itemid ? "expanded" : ""}`}>
                   <div className="mp-listing-card-desc-inner">{item.description}</div>
                   {isDescLong(item.description) && (
-                    <button
-                      type="button"
-                      className="mp-listing-card-desc-seemore"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setExpandedDescItemId((prev) =>
-                          prev === item.itemid ? null : item.itemid
-                        );
-                      }}
-                    >
+                    <button type="button" className="mp-listing-card-desc-seemore" onClick={(e) => { e.stopPropagation(); setExpandedDescItemId((prev) => (prev === item.itemid ? null : item.itemid)); }}>
                       {expandedDescItemId === item.itemid ? "See less" : "See more"}
                     </button>
                   )}
@@ -368,21 +268,24 @@ export default function Listings({ onMessageSeller }) {
         </div>
       )}
 
-      {zoomImageUrl && (
-        <ImageZoomModal
-          imageUrl={zoomImageUrl}
-          onClose={() => setZoomImageUrl(null)}
-        />
+      {/* Modals */}
+      {showCreateModal && (
+        <CreateListingModal token={token} onClose={() => { setShowCreateModal(false); loadListings(); }} />
       )}
-      {showModal && (
-        <CreateListingModal
-          token={token}
-          onClose={() => {
-            setShowModal(false);
-            loadListings();
+      {editingListing && (
+        <EditListingModal
+          listing={editingListing}
+          onClose={() => setEditingListing(null)}
+          onSave={(updated) => {
+            handleListingUpdate(updated);
+            setEditingListing(null);
           }}
         />
       )}
+      {zoomImageUrl && (
+        <ImageZoomModal imageUrl={zoomImageUrl} onClose={() => setZoomImageUrl(null)} />
+      )}
+
       <ToastContainer toasts={toasts} />
     </div>
   );

@@ -2,41 +2,70 @@ import { useState } from "react";
 
 export default function EditListingModal({ listing, onClose, onSave }) {
   const [formData, setFormData] = useState({
-    itemid: listing.itemid,
     category: listing.category || "",
     location: listing.location || "",
     price: listing.price ?? "",
     description: listing.description || "",
     status: listing.status || "Available",
-    photo: null, // UI only
+    photo: null, // File for upload
+    previewPhoto: listing.photo || null, // To show existing image
   });
 
+  // Handle text fields and file input
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-
     if (name === "photo") {
-      setFormData({ ...formData, photo: files?.[0] || null });
+      const file = files?.[0] || null;
+      setFormData({ ...formData, photo: file, previewPhoto: file ? URL.createObjectURL(file) : listing.photo });
     } else {
       setFormData({ ...formData, [name]: value });
     }
   };
 
-  const handleSubmit = (e) => {
+  // Submit updated listing
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // UI-only save:
-    // partner will replace with PUT/PATCH endpoint later
-    onSave({
-      ...listing,
-      category: formData.category,
-      location: formData.location,
-      price: formData.price === "" ? "" : parseFloat(formData.price),
-      description: formData.description,
-      status: formData.status,
-      photo: null,
-    });
+    const form = new FormData();
+    form.append("category", formData.category);
+    form.append("location", formData.location);
+    form.append("price", formData.price);
+    form.append("description", formData.description);
+    form.append("status", formData.status);
+    if (formData.photo) form.append("photo", formData.photo);
 
-    onClose();
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/listings/update/${listing.itemid}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: form,
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to update listing");
+
+      const data = await response.json();
+
+      // Update frontend state
+      onSave({
+        ...listing,
+        category: formData.category,
+        location: formData.location,
+        price: formData.price,
+        description: formData.description,
+        status: formData.status,
+        photo: data.photo || listing.photo,
+      });
+
+      onClose();
+    } catch (err) {
+      console.error("Error updating listing:", err);
+      alert("Failed to update listing. Check console for details.");
+    }
   };
 
   return (
@@ -45,6 +74,7 @@ export default function EditListingModal({ listing, onClose, onSave }) {
         <h2>Edit Listing</h2>
 
         <form onSubmit={handleSubmit}>
+          {/* Category */}
           <div className="form-group">
             <label>Category</label>
             <select name="category" value={formData.category} onChange={handleChange} required>
@@ -57,6 +87,7 @@ export default function EditListingModal({ listing, onClose, onSave }) {
             </select>
           </div>
 
+          {/* Location */}
           <div className="form-group">
             <label>Location (Dorm, Room #)</label>
             <input
@@ -68,6 +99,7 @@ export default function EditListingModal({ listing, onClose, onSave }) {
             />
           </div>
 
+          {/* Price */}
           <div className="form-group">
             <label>Price ($)</label>
             <input
@@ -81,6 +113,7 @@ export default function EditListingModal({ listing, onClose, onSave }) {
             />
           </div>
 
+          {/* Description */}
           <div className="form-group">
             <label>Description</label>
             <textarea
@@ -89,9 +122,10 @@ export default function EditListingModal({ listing, onClose, onSave }) {
               onChange={handleChange}
               required
               rows="3"
-            ></textarea>
+            />
           </div>
 
+          {/* Status */}
           <div className="form-group">
             <label>Status</label>
             <select name="status" value={formData.status} onChange={handleChange}>
@@ -101,11 +135,20 @@ export default function EditListingModal({ listing, onClose, onSave }) {
             </select>
           </div>
 
+          {/* Photo Upload */}
           <div className="form-group">
             <label>Photo</label>
+            {formData.previewPhoto && (
+              <img
+                src={formData.previewPhoto}
+                alt="Preview"
+                style={{ width: "150px", marginBottom: "10px" }}
+              />
+            )}
             <input type="file" name="photo" accept="image/*" onChange={handleChange} />
           </div>
 
+          {/* Buttons */}
           <div className="modal-buttons">
             <button type="submit" className="submit-button">
               Save Changes
