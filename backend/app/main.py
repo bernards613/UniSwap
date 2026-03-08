@@ -21,11 +21,11 @@ def migrate_conversation_table():
         with engine.connect() as conn:
             conn.execute(text(
                 "CREATE TABLE conversation_new ("
-                "conversationid INTEGER PRIMARY KEY AUTOINCREMENT, "
+                "conversationid SERIAL PRIMARY KEY, "
                 "itemid INTEGER REFERENCES listing(itemid), "
                 "buyerid INTEGER NOT NULL REFERENCES users(userid), "
                 "sellerid INTEGER NOT NULL REFERENCES users(userid), "
-                "createddate DATETIME, "
+                "createddate TIMESTAMP, "
                 "requestid INTEGER REFERENCES buyerrequest(requestid))"
             ))
             conn.execute(text(
