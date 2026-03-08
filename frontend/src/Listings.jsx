@@ -1,7 +1,8 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import CreateListingModal from "./CreateListingModal.jsx";
 import EditListingModal from "./EditListingModal.jsx";
-import ImageZoomModal from "./ImageZoomModal.jsx";
+import ListingDetailView from "./ListingDetailView.jsx";
+import LongHoverZoomOverlay from "./LongHoverZoomOverlay.jsx";
 import { useToast, ToastContainer } from "./Toast.jsx";
 import "./marketplace.css";
 
@@ -18,7 +19,8 @@ export default function Listings({ onMessageSeller }) {
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingListing, setEditingListing] = useState(null);
-  const [zoomImageUrl, setZoomImageUrl] = useState(null);
+  const [detailListing, setDetailListing] = useState(null);
+  const [longHoverListing, setLongHoverListing] = useState(null);
 
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -27,30 +29,34 @@ export default function Listings({ onMessageSeller }) {
   const [statusFilter, setStatusFilter] = useState("All");
 
   const [hoveredCardId, setHoveredCardId] = useState(null);
-  const [activeActionsItemId, setActiveActionsItemId] = useState(null);
   const [expandedDescItemId, setExpandedDescItemId] = useState(null);
+  const longHoverTimerRef = useRef(null);
+  const LONG_HOVER_MS = 1000;
 
   const token = localStorage.getItem("token");
   const currentUserId = Number(localStorage.getItem("userId"));
   const { toasts, showToast } = useToast();
 
-  // Hover handlers
-  const handleCardMouseEnter = (itemid) => setHoveredCardId(itemid);
+  // Hover: show overlay fade-out; start long-hover timer for zoom preview
+  const handleCardMouseEnter = (item) => {
+    setHoveredCardId(item.itemid);
+    longHoverTimerRef.current = setTimeout(() => setLongHoverListing(item), LONG_HOVER_MS);
+  };
   const handleCardMouseLeave = () => {
     setHoveredCardId(null);
-    setActiveActionsItemId(null);
     setExpandedDescItemId(null);
+    if (longHoverTimerRef.current) {
+      clearTimeout(longHoverTimerRef.current);
+      longHoverTimerRef.current = null;
+    }
   };
 
   const DESC_SEE_MORE_THRESHOLD = 120;
   const isDescLong = (text) => text && text.length > DESC_SEE_MORE_THRESHOLD;
 
-  const handleCardClick = (itemid) => {
-    setActiveActionsItemId((prev) => (prev === itemid ? null : itemid));
-  };
-
-  const handleActionsBackdropClick = (e) => {
-    if (e.target === e.currentTarget) setActiveActionsItemId(null);
+  const productName = (item) => {
+    if (item.description) return item.description.length > 32 ? item.description.slice(0, 32) + "…" : item.description;
+    return item.category || "Item";
   };
 
   // Load all listings
@@ -228,29 +234,21 @@ export default function Listings({ onMessageSeller }) {
         <div className="mp-grid">
           {filtered.map((item, i) => (
             <div key={item.itemid} className={`mp-listing-card-wrap ${hoveredCardId === item.itemid && item.description ? "has-desc" : ""}`} style={{ animationDelay: `${i * 40}ms` }}
-              onMouseEnter={() => handleCardMouseEnter(item.itemid)}
+              onMouseEnter={() => handleCardMouseEnter(item)}
               onMouseLeave={handleCardMouseLeave}
             >
-              <div className={`mp-listing-card ${hoveredCardId === item.itemid ? "hover-hide-overlay" : ""} ${activeActionsItemId === item.itemid ? "show-actions" : ""}`}
-                onClick={() => item.sellerid !== currentUserId && handleCardClick(item.itemid)}
+              <div
+                className={`mp-listing-card ${hoveredCardId === item.itemid ? "hover-hide-overlay" : ""}`}
+                onClick={() => item.sellerid !== currentUserId && setDetailListing(item)}
               >
                 <div className="mp-listing-card-bg" style={{ backgroundImage: item.photo ? `url(${item.photo})` : "none" }} />
                 <div className="mp-listing-overlay">
-                  <span className="mp-listing-overlay-left">{item.location}</span>
+                  <span className="mp-listing-status-badge" style={{ backgroundColor: statusColor(item.status) }}>
+                    {item.status || "Available"}
+                  </span>
+                  <span className="mp-listing-overlay-left">{productName(item)}</span>
                   <span className="mp-listing-overlay-right">${parseFloat(item.price).toFixed(2)}</span>
                 </div>
-
-                {item.sellerid !== currentUserId && (
-                  <div className="mp-listing-actions" onClick={handleActionsBackdropClick}>
-                    <button type="button" className="mp-action-btn alt" onClick={(e) => { e.stopPropagation(); if (item.photo) setZoomImageUrl(item.photo); setActiveActionsItemId(null); }}>Zoom</button>
-                    {item.status === "Available" && (
-                      <button type="button" className="mp-action-btn" onClick={(e) => { e.stopPropagation(); handlePurchase(item.itemid); setActiveActionsItemId(null); }}>Purchase</button>
-                    )}
-                    <button type="button" className="mp-action-btn alt" onClick={(e) => { e.stopPropagation(); handleBookmark(item.itemid); setActiveActionsItemId(null); }}>Bookmark</button>
-                    <button type="button" className="mp-action-btn" onClick={(e) => { e.stopPropagation(); onMessageSeller && onMessageSeller(item.sellerid, item.itemid, item.description, item.price); setActiveActionsItemId(null); }}>Message</button>
-                    <button type="button" className="mp-action-btn alt" onClick={(e) => { e.stopPropagation(); setEditingListing(item); setActiveActionsItemId(null); }}>Edit</button>
-                  </div>
-                )}
               </div>
 
               {hoveredCardId === item.itemid && item.description && (
@@ -282,8 +280,22 @@ export default function Listings({ onMessageSeller }) {
           }}
         />
       )}
-      {zoomImageUrl && (
-        <ImageZoomModal imageUrl={zoomImageUrl} onClose={() => setZoomImageUrl(null)} />
+      {longHoverListing && (
+        <LongHoverZoomOverlay
+          listing={longHoverListing}
+          onOpenDetail={setDetailListing}
+          onClose={() => setLongHoverListing(null)}
+        />
+      )}
+      {detailListing && (
+        <ListingDetailView
+          listing={detailListing}
+          onClose={() => setDetailListing(null)}
+          onPurchase={handlePurchase}
+          onBookmark={handleBookmark}
+          onMessage={onMessageSeller}
+          statusColor={statusColor}
+        />
       )}
 
       <ToastContainer toasts={toasts} />
