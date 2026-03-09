@@ -2,13 +2,14 @@ import { useState } from "react";
 
 export default function EditListingModal({ listing, onClose, onSave }) {
   const [formData, setFormData] = useState({
+    title: listing.title || "",
     category: listing.category || "",
     location: listing.location || "",
     price: listing.price ?? "",
     description: listing.description || "",
     status: listing.status || "Available",
-    photo: null, // File for upload
-    previewPhoto: listing.photo || null, // To show existing image
+    photo: null,
+    previewPhoto: listing.photo || null,
   });
 
   // Handle text fields and file input
@@ -27,6 +28,7 @@ export default function EditListingModal({ listing, onClose, onSave }) {
     e.preventDefault();
 
     const form = new FormData();
+    form.append("title", (formData.title || "").trim());
     form.append("category", formData.category);
     form.append("location", formData.location);
     form.append("price", formData.price);
@@ -34,9 +36,10 @@ export default function EditListingModal({ listing, onClose, onSave }) {
     form.append("status", formData.status);
     if (formData.photo) form.append("photo", formData.photo);
 
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/listings/update/${listing.itemid}`,
+        `${apiBaseUrl}/listings/update/${listing.itemid}`,
         {
           method: "PUT",
           headers: {
@@ -53,12 +56,13 @@ export default function EditListingModal({ listing, onClose, onSave }) {
       // Update frontend state
       onSave({
         ...listing,
+        title: (formData.title || "").trim() || null,
         category: formData.category,
         location: formData.location,
         price: formData.price,
         description: formData.description,
         status: formData.status,
-        photo: data.photo || listing.photo,
+        photo: data.listing?.photo ?? data.photo ?? listing.photo,
       });
 
       onClose();
@@ -74,7 +78,16 @@ export default function EditListingModal({ listing, onClose, onSave }) {
         <h2>Edit Listing</h2>
 
         <form onSubmit={handleSubmit}>
-          {/* Category */}
+          <div className="form-group">
+            <label>Title / Product name</label>
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              placeholder="e.g., Wooden desk chair"
+            />
+          </div>
           <div className="form-group">
             <label>Category</label>
             <select name="category" value={formData.category} onChange={handleChange} required>

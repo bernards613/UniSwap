@@ -10,6 +10,23 @@ from app import models
 app = FastAPI()
 
 
+def migrate_listing_title():
+    """Add title column to listing table if missing."""
+    try:
+        insp = inspect(engine)
+        if "listing" not in insp.get_table_names():
+            return
+        cols = {c["name"] for c in insp.get_columns("listing")}
+        if "title" in cols:
+            return
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE listing ADD COLUMN title VARCHAR"))
+            conn.commit()
+        print("Listing table: title column added.")
+    except Exception as e:
+        print(f"Listing title migration note: {e}")
+
+
 def migrate_conversation_table():
     """Add requestid column and make itemid nullable for buyer-request conversations."""
     try:
@@ -47,6 +64,7 @@ def create_tables():
     try:
         print("Initializing database tables...")
         Base.metadata.create_all(bind=engine)
+        migrate_listing_title()
         migrate_conversation_table()
         print("Database tables initialized successfully!")
     except Exception as e:

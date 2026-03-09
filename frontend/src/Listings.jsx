@@ -55,6 +55,8 @@ export default function Listings({ onMessageSeller }) {
   const isDescLong = (text) => text && text.length > DESC_SEE_MORE_THRESHOLD;
 
   const productName = (item) => {
+    const t = (item.title || "").trim();
+    if (t) return t.length > 32 ? t.slice(0, 32) + "…" : t;
     if (item.description) return item.description.length > 32 ? item.description.slice(0, 32) + "…" : item.description;
     return item.category || "Item";
   };

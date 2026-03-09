@@ -25,6 +25,7 @@ class Listing(Base):
 
     itemid = Column(Integer, primary_key=True, index=True)
     sellerid = Column(Integer, ForeignKey("users.userid"), nullable=False)
+    title = Column(String, nullable=True)
     category = Column(String, nullable=False)
     location = Column(String, nullable=False)
     photo = Column(String)

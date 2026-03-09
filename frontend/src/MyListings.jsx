@@ -9,8 +9,15 @@ export default function MyListings() {
   const [loading, setLoading] = useState(true);
   const [editingItem, setEditingItem] = useState(null);
   const [confirmConfig, setConfirmConfig] = useState(null);
-  const [activeActionsItemId, setActiveActionsItemId] = useState(null);
+  const [hoveredCardId, setHoveredCardId] = useState(null);
   const { toasts, showToast } = useToast();
+
+  const productName = (item) => {
+    const t = (item.title || "").trim();
+    if (t) return t.length > 32 ? t.slice(0, 32) + "…" : t;
+    if (item.description) return item.description.length > 32 ? item.description.slice(0, 32) + "…" : item.description;
+    return item.category || "Item";
+  };
 
   const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
@@ -55,6 +62,11 @@ export default function MyListings() {
   };
 
   const handleDelete = (itemid) => {
+    const id = Number(itemid);
+    if (!Number.isInteger(id) || id < 1) {
+      showToast("Invalid listing.", "error");
+      return;
+    }
     setConfirmConfig({
       message: "Delete this listing?",
       subtext: "This cannot be undone.",
@@ -63,22 +75,36 @@ export default function MyListings() {
       onCancel: () => setConfirmConfig(null),
       onConfirm: async () => {
         setConfirmConfig(null);
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+        const url = `${apiBaseUrl.replace(/\/$/, "")}/listings/delete/${id}`;
         try {
-          const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
-          const response = await fetch(`${apiBaseUrl}/listings/delete/${itemid}`, {
+          const response = await fetch(url, {
             method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
           });
-          const data = await response.json();
+          let detail = "";
+          try {
+            const data = await response.json();
+            detail = typeof data.detail === "string" ? data.detail : "";
+          } catch (_) {
+            /* non-JSON response */
+          }
           if (response.ok) {
-            setListings((prev) => prev.filter((l) => l.itemid !== itemid));
+            setListings((prev) => prev.filter((l) => l.itemid !== id));
             showToast("Listing deleted");
           } else {
-            showToast(data.detail || "Could not delete listing", "error");
+            const message =
+              response.status === 404
+                ? "Listing not found or already deleted."
+                : detail || "Could not delete listing.";
+            showToast(message, "error");
           }
         } catch (err) {
           console.error("Delete error:", err);
-          showToast("Network error while deleting", "error");
+          showToast("Network error. Check the connection and try again.", "error");
         }
       },
     });
@@ -110,13 +136,13 @@ export default function MyListings() {
           {myListings.map((item, i) => (
             <div
               key={item.itemid}
-              className="mp-listing-card-wrap"
+              className="mp-listing-card-wrap mp-listing-card-wrap--my-listings"
               style={{ animationDelay: `${i * 40}ms` }}
-              onMouseLeave={() => setActiveActionsItemId(null)}
+              onMouseEnter={() => setHoveredCardId(item.itemid)}
+              onMouseLeave={() => setHoveredCardId(null)}
             >
               <div
-                className={`mp-listing-card ${activeActionsItemId === item.itemid ? "show-actions" : ""}`}
-                onClick={() => setActiveActionsItemId((prev) => (prev === item.itemid ? null : item.itemid))}
+                className={`mp-listing-card ${hoveredCardId === item.itemid ? "show-actions" : ""}`}
               >
                 <div
                   className="mp-listing-card-bg"
@@ -127,14 +153,14 @@ export default function MyListings() {
                   }}
                 />
                 <div className="mp-listing-overlay">
-                  <span className="mp-listing-overlay-left">{item.location}</span>
+                  <span className="mp-listing-overlay-left">{productName(item)}</span>
                   <span className="mp-listing-overlay-right">
                     ${parseFloat(item.price).toFixed(2)}
                   </span>
                 </div>
                 <div
                   className="mp-listing-actions"
-                  onClick={(e) => e.target === e.currentTarget && setActiveActionsItemId(null)}
+                  onClick={(e) => e.target === e.currentTarget && setHoveredCardId(null)}
                 >
                   <button
                     type="button"
@@ -142,19 +168,18 @@ export default function MyListings() {
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOpenEdit(item);
-                      setActiveActionsItemId(null);
+                      setHoveredCardId(null);
                     }}
                   >
                     Edit
                   </button>
                   <button
                     type="button"
-                    className="mp-action-btn"
-                    style={{ background: "#dc2626" }}
+                    className="mp-action-btn mp-action-btn-danger"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDelete(item.itemid);
-                      setActiveActionsItemId(null);
+                      setHoveredCardId(null);
                     }}
                   >
                     Delete

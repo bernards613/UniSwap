@@ -4,6 +4,7 @@ import { useToast, ToastContainer } from "./Toast.jsx";
 export default function CreateListingModal({ onClose }) {
   const { toasts, showToast } = useToast();
   const [formData, setFormData] = useState({
+    title: "",
     category: "",
     location: "",
     price: "",
@@ -28,6 +29,11 @@ export default function CreateListingModal({ onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const trimmedTitle = (formData.title || "").trim();
+    if (!trimmedTitle) {
+      showToast("Please enter a title (product name) for your listing.", "error");
+      return;
+    }
     if (!formData.photo) {
       showToast("Please upload a photo for your listing.", "error");
       return;
@@ -61,6 +67,7 @@ export default function CreateListingModal({ onClose }) {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          title: trimmedTitle,
           category: formData.category,
           location: formData.location,
           price: parseFloat(formData.price),
@@ -90,6 +97,17 @@ export default function CreateListingModal({ onClose }) {
         <form onSubmit={handleSubmit}>
           <div className="form-section">
             <div className="form-section-title">Item</div>
+            <div className="form-group">
+              <label>Title / Product name</label>
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                placeholder="e.g., Wooden desk chair"
+                required
+              />
+            </div>
             <div className="form-group">
               <label>Category</label>
               <select name="category" value={formData.category} onChange={handleChange} required>

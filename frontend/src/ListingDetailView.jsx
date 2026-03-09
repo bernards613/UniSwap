@@ -6,9 +6,12 @@ export default function ListingDetailView({ listing, onClose, onPurchase, onBook
   if (!listing) return null;
 
   const status = listing.status || "Available";
-  const productName = listing.description
-    ? (listing.description.length > 60 ? listing.description.slice(0, 60) + "…" : listing.description)
-    : listing.category || "Item";
+  const rawName = (listing.title || "").trim();
+  const productName = rawName
+    ? (rawName.length > 60 ? rawName.slice(0, 60) + "…" : rawName)
+    : listing.description
+      ? (listing.description.length > 60 ? listing.description.slice(0, 60) + "…" : listing.description)
+      : listing.category || "Item";
 
   const sellerName = [listing.seller_firstname, listing.seller_lastname].filter(Boolean).join(" ") || "Seller";
 
