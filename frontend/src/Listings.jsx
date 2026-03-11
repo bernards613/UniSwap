@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import CreateListingModal from "./CreateListingModal.jsx";
 import EditListingModal from "./EditListingModal.jsx";
 import ListingDetailView from "./ListingDetailView.jsx";
-import LongHoverZoomOverlay from "./LongHoverZoomOverlay.jsx";
+import ListingHoverPanel, { PANEL_WIDTH } from "./ListingHoverPanel.jsx";
 import { useToast, ToastContainer } from "./Toast.jsx";
 import "./marketplace.css";
 
@@ -20,7 +20,8 @@ export default function Listings({ onMessageSeller }) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingListing, setEditingListing] = useState(null);
   const [detailListing, setDetailListing] = useState(null);
-  const [longHoverListing, setLongHoverListing] = useState(null);
+  const [panelListing, setPanelListing] = useState(null);
+  const [panelSide, setPanelSide] = useState("right");
 
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -29,30 +30,33 @@ export default function Listings({ onMessageSeller }) {
   const [statusFilter, setStatusFilter] = useState("All");
 
   const [hoveredCardId, setHoveredCardId] = useState(null);
-  const [expandedDescItemId, setExpandedDescItemId] = useState(null);
   const longHoverTimerRef = useRef(null);
+  const cardWrapRefs = useRef({});
   const LONG_HOVER_MS = 1000;
 
   const token = localStorage.getItem("token");
   const currentUserId = Number(localStorage.getItem("userId"));
   const { toasts, showToast } = useToast();
 
-  // Hover: show overlay fade-out; start long-hover timer for zoom preview
+  // Hover: overlay hides; after 1.5s show side panel (right, or left if card is rightmost)
   const handleCardMouseEnter = (item) => {
     setHoveredCardId(item.itemid);
-    longHoverTimerRef.current = setTimeout(() => setLongHoverListing(item), LONG_HOVER_MS);
+    longHoverTimerRef.current = setTimeout(() => {
+      const wrapEl = cardWrapRefs.current[item.itemid];
+      const rect = wrapEl?.getBoundingClientRect();
+      const spaceRight = typeof window !== "undefined" ? window.innerWidth - (rect?.right ?? 0) : PANEL_WIDTH + 20;
+      setPanelSide(spaceRight >= PANEL_WIDTH + 16 ? "right" : "left");
+      setPanelListing(item);
+    }, LONG_HOVER_MS);
   };
   const handleCardMouseLeave = () => {
     setHoveredCardId(null);
-    setExpandedDescItemId(null);
+    setPanelListing(null);
     if (longHoverTimerRef.current) {
       clearTimeout(longHoverTimerRef.current);
       longHoverTimerRef.current = null;
     }
   };
-
-  const DESC_SEE_MORE_THRESHOLD = 120;
-  const isDescLong = (text) => text && text.length > DESC_SEE_MORE_THRESHOLD;
 
   const productName = (item) => {
     const t = (item.title || "").trim();
@@ -140,7 +144,8 @@ export default function Listings({ onMessageSeller }) {
           l.description?.toLowerCase().includes(q) ||
           l.location?.toLowerCase().includes(q) ||
           l.seller_firstname?.toLowerCase().includes(q) ||
-          l.seller_lastname?.toLowerCase().includes(q)
+          l.seller_lastname?.toLowerCase().includes(q) ||
+          l.seller_username?.toLowerCase().includes(q)
       );
     }
     if (selectedCategory !== "All") result = result.filter((l) => l.category === selectedCategory);
@@ -235,7 +240,11 @@ export default function Listings({ onMessageSeller }) {
       ) : (
         <div className="mp-grid">
           {filtered.map((item, i) => (
-            <div key={item.itemid} className={`mp-listing-card-wrap ${hoveredCardId === item.itemid && item.description ? "has-desc" : ""}`} style={{ animationDelay: `${i * 40}ms` }}
+            <div
+              key={item.itemid}
+              className={`mp-listing-card-wrap${panelListing?.itemid === item.itemid ? " panel-open" : ""}`}
+              style={{ animationDelay: `${i * 40}ms`, position: "relative" }}
+              ref={(el) => { cardWrapRefs.current[item.itemid] = el; }}
               onMouseEnter={() => handleCardMouseEnter(item)}
               onMouseLeave={handleCardMouseLeave}
             >
@@ -245,7 +254,7 @@ export default function Listings({ onMessageSeller }) {
               >
                 <div className="mp-listing-card-bg" style={{ backgroundImage: item.photo ? `url(${item.photo})` : "none" }} />
                 <div className="mp-listing-overlay">
-                  <span className="mp-listing-status-badge" style={{ backgroundColor: statusColor(item.status) }}>
+                  <span className="mp-listing-status-badge mp-listing-status-badge--corner" style={{ backgroundColor: statusColor(item.status) }}>
                     {item.status || "Available"}
                   </span>
                   <span className="mp-listing-overlay-left">{productName(item)}</span>
@@ -253,15 +262,14 @@ export default function Listings({ onMessageSeller }) {
                 </div>
               </div>
 
-              {hoveredCardId === item.itemid && item.description && (
-                <div className={`mp-listing-card-desc ${expandedDescItemId === item.itemid ? "expanded" : ""}`}>
-                  <div className="mp-listing-card-desc-inner">{item.description}</div>
-                  {isDescLong(item.description) && (
-                    <button type="button" className="mp-listing-card-desc-seemore" onClick={(e) => { e.stopPropagation(); setExpandedDescItemId((prev) => (prev === item.itemid ? null : item.itemid)); }}>
-                      {expandedDescItemId === item.itemid ? "See less" : "See more"}
-                    </button>
-                  )}
-                </div>
+              {panelListing?.itemid === item.itemid && (
+                <ListingHoverPanel
+                  listing={item}
+                  side={panelSide}
+                  cardWrapRef={cardWrapRefs}
+                  listingItemId={item.itemid}
+                  onClose={() => setPanelListing(null)}
+                />
               )}
             </div>
           ))}
@@ -280,13 +288,6 @@ export default function Listings({ onMessageSeller }) {
             handleListingUpdate(updated);
             setEditingListing(null);
           }}
-        />
-      )}
-      {longHoverListing && (
-        <LongHoverZoomOverlay
-          listing={longHoverListing}
-          onOpenDetail={setDetailListing}
-          onClose={() => setLongHoverListing(null)}
         />
       )}
       {detailListing && (

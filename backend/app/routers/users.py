@@ -160,7 +160,9 @@ def get_bookmarked_listings(
 ):
     bookmarks = (
         db.query(models.Bookmark)
-        .options(joinedload(models.Bookmark.item))  # <- ensure Listing is loaded
+        .options(
+            joinedload(models.Bookmark.item).joinedload(models.Listing.seller)
+        )
         .filter(models.Bookmark.userid == current_user.userid)
         .all()
     )
@@ -168,16 +170,22 @@ def get_bookmarked_listings(
     results = []
     for b in bookmarks:
         if b.item:
+            seller = b.item.seller
             results.append({
                 "bookmarkid": b.bookmarkid,
                 "itemid": b.item.itemid,
+                "title": b.item.title,
                 "category": b.item.category,
                 "location": b.item.location,
                 "photo": b.item.photo,
                 "price": b.item.price,
                 "description": b.item.description,
+                "status": b.item.status,
                 "sellerid": b.item.sellerid,
-                "saveddate": b.saveddate,
+                "seller_firstname": seller.firstname if seller else None,
+                "seller_lastname": seller.lastname if seller else None,
+                "seller_username": seller.username if seller else None,
+                "saveddate": b.saveddate.isoformat() if b.saveddate else None,
             })
 
     return results
@@ -189,7 +197,9 @@ def get_purchase_history(
 ):
     purchases = (
         db.query(models.Transaction)
-        .options(joinedload(models.Transaction.item))  # <- ensure Listing is loaded
+        .options(
+            joinedload(models.Transaction.item).joinedload(models.Listing.seller)
+        )
         .filter(models.Transaction.buyerid == current_user.userid)
         .all()
     )
@@ -197,16 +207,22 @@ def get_purchase_history(
     results = []
     for p in purchases:
         if p.item:
+            seller = p.item.seller
             results.append({
                 "transactionid": p.transactionid,
                 "itemid": p.item.itemid,
+                "title": p.item.title,
                 "category": p.item.category,
                 "location": p.item.location,
                 "photo": p.item.photo,
                 "price": p.item.price,
                 "description": p.item.description,
+                "status": p.item.status,
                 "sellerid": p.item.sellerid,
-                "transactiondate": p.transactiondate
+                "seller_firstname": seller.firstname if seller else None,
+                "seller_lastname": seller.lastname if seller else None,
+                "seller_username": seller.username if seller else None,
+                "transactiondate": p.transactiondate.isoformat() if p.transactiondate else None,
             })
 
     return results

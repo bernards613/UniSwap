@@ -94,6 +94,17 @@ button:hover {
   opacity: 1;
 }
 
+.nav-btn-active {
+  color: #fff;
+  border-bottom: 2px solid currentColor;
+  padding-bottom: 2px;
+}
+
+.nav-btn-active:hover {
+  color: #fff;
+  opacity: 1;
+}
+
 /* Settings */
 .settings {
   padding: 30px;

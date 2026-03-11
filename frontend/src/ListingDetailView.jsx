@@ -1,10 +1,11 @@
 /**
  * Full listing detail view: large image (left ~75%), product info and actions (right).
- * Used when user clicks a listing card or the long-hover zoom image.
+ * Optional purchaseDate (ISO string) for purchase history: shows date/time and hides Purchase/Bookmark.
  */
-export default function ListingDetailView({ listing, onClose, onPurchase, onBookmark, onMessage, statusColor }) {
+export default function ListingDetailView({ listing, onClose, onPurchase, onBookmark, onMessage, statusColor, purchaseDate }) {
   if (!listing) return null;
 
+  const isPurchase = Boolean(purchaseDate);
   const status = listing.status || "Available";
   const rawName = (listing.title || "").trim();
   const productName = rawName
@@ -13,7 +14,17 @@ export default function ListingDetailView({ listing, onClose, onPurchase, onBook
       ? (listing.description.length > 60 ? listing.description.slice(0, 60) + "…" : listing.description)
       : listing.category || "Item";
 
-  const sellerName = [listing.seller_firstname, listing.seller_lastname].filter(Boolean).join(" ") || "Seller";
+  const sellerName = listing.seller_username || "Seller";
+
+  let purchaseDateText = "";
+  if (purchaseDate) {
+    try {
+      const d = new Date(purchaseDate);
+      purchaseDateText = d.toLocaleDateString(undefined, { dateStyle: "medium" }) + " at " + d.toLocaleTimeString(undefined, { timeStyle: "short" });
+    } catch {
+      purchaseDateText = purchaseDate;
+    }
+  }
 
   return (
     <div className="listing-detail-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label="Listing details">
@@ -35,26 +46,33 @@ export default function ListingDetailView({ listing, onClose, onPurchase, onBook
               {status}
             </span>
             <h2 className="listing-detail-name">{productName}</h2>
-            <p className="listing-detail-seller">Seller: {sellerName}</p>
+            <p className="listing-detail-seller">by {sellerName}</p>
+            <p className="listing-detail-location">Location: {listing.location || "—"}</p>
             <div className="listing-detail-description-block">
               <span className="listing-detail-description-label">Description</span>
               <div className="listing-detail-description">{listing.description || "No description."}</div>
             </div>
             <p className="listing-detail-price">${parseFloat(listing.price).toFixed(2)}</p>
 
-            <div className="listing-detail-actions">
-              {listing.status === "Available" && (
-                <button type="button" className="mp-action-btn listing-detail-btn" onClick={() => onPurchase(listing.itemid)}>
-                  Purchase
+            {isPurchase && purchaseDateText && (
+              <p className="listing-detail-purchase-date">Purchased on {purchaseDateText}</p>
+            )}
+
+            {!isPurchase && (
+              <div className="listing-detail-actions">
+                <button type="button" className="listing-detail-btn listing-detail-btn-message" onClick={() => onMessage && onMessage(listing.sellerid, listing.itemid, listing.description, listing.price)}>
+                  Message
                 </button>
-              )}
-              <button type="button" className="mp-action-btn alt listing-detail-btn" onClick={() => onBookmark(listing.itemid)}>
-                Bookmark
-              </button>
-              <button type="button" className="mp-action-btn listing-detail-btn" onClick={() => onMessage && onMessage(listing.sellerid, listing.itemid, listing.description, listing.price)}>
-                Message
-              </button>
-            </div>
+                <button type="button" className="listing-detail-btn listing-detail-btn-bookmark" onClick={() => onBookmark(listing.itemid)}>
+                  Bookmark
+                </button>
+                {listing.status === "Available" && (
+                  <button type="button" className="listing-detail-btn listing-detail-btn-buy" onClick={() => onPurchase(listing.itemid)}>
+                    Buy it now
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

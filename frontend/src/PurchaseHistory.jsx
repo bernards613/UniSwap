@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
+import ListingDetailView from "./ListingDetailView.jsx";
 import "./marketplace.css";
 
 export default function PurchaseHistory({ token }) {
   const [purchases, setPurchases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [hoveredCardId, setHoveredCardId] = useState(null);
+  const [detailPurchase, setDetailPurchase] = useState(null);
 
   useEffect(() => {
     if (!token) return;
@@ -33,10 +36,19 @@ export default function PurchaseHistory({ token }) {
 
   const totalSpent = purchases.reduce((sum, p) => sum + parseFloat(p.price || 0), 0);
 
+  const sellerName = (p) => p.seller_username || "Seller";
+
+  const statusColor = (status) => {
+    if (!status) return "#888";
+    const s = (status + "").charAt(0).toUpperCase() + (status + "").slice(1).toLowerCase();
+    if (s === "Available") return "#16a34a";
+    if (s === "Pending") return "#d97706";
+    if (s === "Sold") return "#dc2626";
+    return "#888";
+  };
+
   return (
     <div className="mp-page">
-
-      {/* Summary bar */}
       {!loading && !error && purchases.length > 0 && (
         <div className="ph-summary">
           <div className="ph-summary-stat">
@@ -80,42 +92,35 @@ export default function PurchaseHistory({ token }) {
         <div className="mp-grid">
           {purchases.map((p, i) => (
             <div
-              className="mp-card"
               key={p.transactionid}
-              style={{ animationDelay: `${i * 40}ms` }}
+              className="mp-listing-card-wrap"
+              style={{ animationDelay: `${i * 40}ms`, position: "relative" }}
+              onMouseEnter={() => setHoveredCardId(p.transactionid)}
+              onMouseLeave={() => setHoveredCardId(null)}
             >
-              <div className="mp-card-img">
-                <span className="mp-card-category-icon">{categoryIcon(p.category)}</span>
-              </div>
-
-              <div className="mp-card-body">
-                <div className="mp-card-top">
-                  <span className="mp-card-category">{p.category}</span>
-                  <span className="ph-purchased-badge">✓ Purchased</span>
-                </div>
-
-                {p.description && <p className="mp-card-desc">{p.description}</p>}
-
-                <div className="mp-card-footer">
-                  <div className="mp-card-meta">
-                    <span className="mp-card-location"> {p.location}</span>
-                    {p.created_at && (
-                      <span className="mp-card-location">
-                         {new Date(p.created_at).toLocaleDateString()}
-                      </span>
-                    )}
-                  </div>
-                  <span className="mp-card-price">${parseFloat(p.price).toFixed(2)}</span>
+              <div
+                className={`mp-listing-card mp-listing-card--purchase ${hoveredCardId === p.transactionid ? "hover-hide-overlay" : ""}`}
+                onClick={() => setDetailPurchase(p)}
+              >
+                <div className="mp-listing-card-bg" style={{ backgroundImage: p.photo ? `url(${p.photo})` : "none" }} />
+                <div className="mp-listing-overlay mp-purchase-overlay">
+                  <span className="mp-purchase-overlay-seller">by {sellerName(p)}</span>
+                  <span className="mp-purchase-overlay-price">Purchased for ${parseFloat(p.price).toFixed(2)}</span>
                 </div>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {detailPurchase && (
+        <ListingDetailView
+          listing={detailPurchase}
+          onClose={() => setDetailPurchase(null)}
+          purchaseDate={detailPurchase.transactiondate}
+          statusColor={statusColor}
+        />
+      )}
     </div>
   );
-}
-
-function categoryIcon(cat) {
-  return cat;
 }

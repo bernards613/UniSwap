@@ -18,6 +18,7 @@ function App() {
   const [token, setToken] = useState(null);
   const [conversationId, setConversationId] = useState(null);
   const [newChatData, setNewChatData] = useState(null);
+  const [conversationOrigin, setConversationOrigin] = useState("messages");
   const [userData, setUserData] = useState({ username: null, profilePicture: null });
 
   const setScreen = (newScreen) => {
@@ -28,6 +29,7 @@ function App() {
   const handleOpenConversation = (convId) => {
     setConversationId(convId);
     setNewChatData(null);
+    setConversationOrigin("messages");
     setScreen("conversation");
   };
 
@@ -39,6 +41,7 @@ function App() {
       itemPrice,
     });
     setConversationId(null);
+    setConversationOrigin(screen);
     setScreen("conversation");
   };
 
@@ -51,6 +54,7 @@ function App() {
       isBuyerRequest: true,
     });
     setConversationId(null);
+    setConversationOrigin("buyerrequests");
     setScreen("conversation");
   };
 
@@ -173,7 +177,7 @@ function App() {
       {screen === "mylistings" && <MyListings />}
       {screen === "myrequests" && <MyRequests />}
       {screen === "settings" && <Settings />}
-      {screen === "bookmarks" && <BookmarkedListings token={token} />}
+      {screen === "bookmarks" && <BookmarkedListings token={token} onMessageSeller={handleMessageSeller} />}
       {screen === "purchases" && <PurchaseHistory token={token} />}
       {screen === "messages" && (
         <Messages token={token} onOpenConversation={handleOpenConversation} />
@@ -185,7 +189,7 @@ function App() {
           newChatData={newChatData}
           onBack={() => {
             setNewChatData(null);
-            setScreen("messages");
+            setScreen(conversationOrigin);
           }}
           onConversationCreated={(convId) => {
             setConversationId(convId);

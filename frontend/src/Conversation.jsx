@@ -300,6 +300,9 @@ export default function Conversation({ token, conversationId, newChatData, onBac
         .conv-avatar {
           width: 40px;
           height: 40px;
+          min-width: 40px;
+          min-height: 40px;
+          flex-shrink: 0;
           border-radius: 50%;
           background: linear-gradient(135deg, #f0c040 0%, #e0b030 100%);
           display: flex;

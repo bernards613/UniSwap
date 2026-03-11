@@ -65,23 +65,23 @@ export default function Header({ currentScreen, onNavigate, userData }) {
       <nav className="navbar">
         {currentScreen !== "login" && currentScreen !== "create" && (
           <>
-            <button className="nav-btn" onClick={() => onNavigate("listings")}>
+            <button className={`nav-btn ${currentScreen === "listings" ? "nav-btn-active" : ""}`} onClick={() => onNavigate("listings")}>
               Listings
             </button>
 
-            <button className="nav-btn" onClick={() => onNavigate("buyerrequests")}>
+            <button className={`nav-btn ${currentScreen === "buyerrequests" ? "nav-btn-active" : ""}`} onClick={() => onNavigate("buyerrequests")}>
               Buyer Requests
             </button>
 
-            <button className="nav-btn" onClick={() => onNavigate("bookmarks")}>
+            <button className={`nav-btn ${currentScreen === "bookmarks" ? "nav-btn-active" : ""}`} onClick={() => onNavigate("bookmarks")}>
               Bookmarked Listings
             </button>
 
-            <button className="nav-btn" onClick={() => onNavigate("purchases")}>
+            <button className={`nav-btn ${currentScreen === "purchases" ? "nav-btn-active" : ""}`} onClick={() => onNavigate("purchases")}>
               Purchase History
             </button>
 
-            <button className="nav-btn" onClick={() => onNavigate("messages")}>
+            <button className={`nav-btn ${currentScreen === "messages" ? "nav-btn-active" : ""}`} onClick={() => onNavigate("messages")}>
               Messages
             </button>
 

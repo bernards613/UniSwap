@@ -106,6 +106,7 @@ export default function CreateListingModal({ onClose }) {
                 onChange={handleChange}
                 placeholder="e.g., Wooden desk chair"
                 required
+                maxLength={80}
               />
             </div>
             <div className="form-group">
@@ -149,6 +150,7 @@ export default function CreateListingModal({ onClose }) {
                 onChange={handleChange}
                 placeholder="e.g., West Hall, Room 204"
                 required
+                maxLength={100}
               />
             </div>
             <div className="form-group">

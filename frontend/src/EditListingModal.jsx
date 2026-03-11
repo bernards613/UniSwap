@@ -86,6 +86,7 @@ export default function EditListingModal({ listing, onClose, onSave }) {
               value={formData.title}
               onChange={handleChange}
               placeholder="e.g., Wooden desk chair"
+              maxLength={80}
             />
           </div>
           <div className="form-group">
@@ -109,6 +110,7 @@ export default function EditListingModal({ listing, onClose, onSave }) {
               value={formData.location}
               onChange={handleChange}
               required
+              maxLength={100}
             />
           </div>
 
