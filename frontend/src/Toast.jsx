@@ -26,9 +26,6 @@ const COLORS = {
   info:    { bg: "#1e3a5f", border: "#3b82f6", icon: "#93c5fd" },
 };
 
-/**
- * Drop <ToastContainer toasts={toasts} /> anywhere in your JSX.
- */
 export function ToastContainer({ toasts }) {
   return (
     <>

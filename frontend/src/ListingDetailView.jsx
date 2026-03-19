@@ -47,7 +47,12 @@ export default function ListingDetailView({ listing, onClose, onPurchase, onBook
             </span>
             <h2 className="listing-detail-name">{productName}</h2>
             <p className="listing-detail-seller">by {sellerName}</p>
-            <p className="listing-detail-location">Location: {listing.location || "—"}</p>
+
+            <p className="listing-detail-location">
+              <img src="/location.png" alt="" className="listing-detail-icon-location" />
+              {listing.location || "—"}
+            </p>
+
             <div className="listing-detail-description-block">
               <span className="listing-detail-description-label">Description</span>
               <div className="listing-detail-description">{listing.description || "No description."}</div>
@@ -60,14 +65,28 @@ export default function ListingDetailView({ listing, onClose, onPurchase, onBook
 
             {!isPurchase && (
               <div className="listing-detail-actions">
-                <button type="button" className="listing-detail-btn listing-detail-btn-message" onClick={() => onMessage && onMessage(listing.sellerid, listing.itemid, listing.description, listing.price)}>
+                <button
+                  type="button"
+                  className="listing-detail-btn listing-detail-btn-message"
+                  onClick={() => onMessage && onMessage(listing.sellerid, listing.itemid, listing.description, listing.price)}
+                >
+                  <img src="/comment.png" alt="" className="listing-detail-btn-icon" />
                   Message
                 </button>
-                <button type="button" className="listing-detail-btn listing-detail-btn-bookmark" onClick={() => onBookmark(listing.itemid)}>
+                <button
+                  type="button"
+                  className="listing-detail-btn listing-detail-btn-bookmark"
+                  onClick={() => onBookmark(listing.itemid)}
+                >
+                  <img src="/bookmark-white.png" alt="" className="listing-detail-btn-icon" />
                   Bookmark
                 </button>
                 {listing.status === "Available" && (
-                  <button type="button" className="listing-detail-btn listing-detail-btn-buy" onClick={() => onPurchase(listing.itemid)}>
+                  <button
+                    type="button"
+                    className="listing-detail-btn listing-detail-btn-buy"
+                    onClick={() => onPurchase(listing.itemid)}
+                  >
                     Buy it now
                   </button>
                 )}

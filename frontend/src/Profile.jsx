@@ -12,35 +12,20 @@ export default function Profile({ token, onProfilePictureUpdate }) {
   const [profilePicture, setProfilePicture] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [editForm, setEditForm] = useState({
-    firstname: "",
-    lastname: "",
-    institution: "",
-  });
+  const [editForm, setEditForm] = useState({ firstname: "", lastname: "", institution: "" });
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
+  useEffect(() => { loadProfile(); }, []);
 
   const loadProfile = async () => {
     setLoading(true);
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
-      const response = await fetch(`${apiBaseUrl}/users/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+      const response = await fetch(`${apiBaseUrl}/users/me`, { headers: { Authorization: `Bearer ${token}` } });
       if (response.ok) {
         const data = await response.json();
         setUser(data);
         setProfilePicture(data.profilepictureurl);
-        setEditForm({
-          firstname: data.firstname || "",
-          lastname: data.lastname || "",
-          institution: data.institution || "",
-        });
+        setEditForm({ firstname: data.firstname || "", lastname: data.lastname || "", institution: data.institution || "" });
       } else {
         setError("Failed to load profile");
       }
@@ -55,40 +40,23 @@ export default function Profile({ token, onProfilePictureUpdate }) {
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    if (!SUPPORTED_IMAGE_TYPES.includes(file.type)) {
-      alert(`Unsupported image format. Please use ${SUPPORTED_EXTENSIONS}.`);
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      alert("Image must be less than 5MB");
-      return;
-    }
-
+    if (!SUPPORTED_IMAGE_TYPES.includes(file.type)) { alert(`Unsupported image format. Please use ${SUPPORTED_EXTENSIONS}.`); return; }
+    if (file.size > 5 * 1024 * 1024) { alert("Image must be less than 5MB"); return; }
     setUploading(true);
-
     const reader = new FileReader();
     reader.onloadend = async () => {
       const base64 = reader.result;
-      
       try {
         const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
         const response = await fetch(`${apiBaseUrl}/users/profile-picture`, {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({ profilepictureurl: base64 }),
         });
-
         if (response.ok) {
           setProfilePicture(base64);
           localStorage.setItem("profilePicture", base64);
-          if (onProfilePictureUpdate) {
-            onProfilePictureUpdate(base64);
-          }
+          if (onProfilePictureUpdate) onProfilePictureUpdate(base64);
           alert("Profile picture updated!");
         } else {
           const errData = await response.json();
@@ -101,12 +69,7 @@ export default function Profile({ token, onProfilePictureUpdate }) {
         setUploading(false);
       }
     };
-
-    reader.onerror = () => {
-      alert("Failed to read the image file. Please try again.");
-      setUploading(false);
-    };
-
+    reader.onerror = () => { alert("Failed to read the image file."); setUploading(false); };
     reader.readAsDataURL(file);
   };
 
@@ -121,13 +84,9 @@ export default function Profile({ token, onProfilePictureUpdate }) {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
       const response = await fetch(`${apiBaseUrl}/users/profile`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(editForm),
       });
-
       if (response.ok) {
         const updatedUser = await response.json();
         setUser(updatedUser);
@@ -149,47 +108,19 @@ export default function Profile({ token, onProfilePictureUpdate }) {
   };
 
   const handleCancelEdit = () => {
-    setEditForm({
-      firstname: user?.firstname || "",
-      lastname: user?.lastname || "",
-      institution: user?.institution || "",
-    });
+    setEditForm({ firstname: user?.firstname || "", lastname: user?.lastname || "", institution: user?.institution || "" });
     setIsEditing(false);
   };
 
-  const getInitial = () => {
-    if (user?.username) {
-      return user.username.charAt(0).toUpperCase();
-    }
-    return "?";
-  };
+  const getInitial = () => user?.username ? user.username.charAt(0).toUpperCase() : "?";
 
-  if (loading) {
-    return (
-      <div className="mp-page">
-        <div className="mp-loading">
-          <div className="mp-spinner"></div>
-          <p>Loading profile...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="mp-page">
-        <div className="mp-empty">
-          <span className="mp-empty-icon"></span>
-          <h3>Error</h3>
-          <p>{error}</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <div className="mp-page"><div className="mp-loading"><div className="mp-spinner"></div><p>Loading profile...</p></div></div>;
+  if (error) return <div className="mp-page"><div className="mp-empty"><h3>Error</h3><p>{error}</p></div></div>;
 
   return (
     <div className="mp-page">
       <div className="profile-container">
+        {/* Header card */}
         <div className="profile-header">
           <div className="profile-avatar-section">
             <div className="profile-avatar-wrapper">
@@ -198,394 +129,137 @@ export default function Profile({ token, onProfilePictureUpdate }) {
               ) : (
                 <div className="profile-avatar-placeholder">{getInitial()}</div>
               )}
-              <label className="profile-avatar-edit">
-                <input
-                  type="file"
-                  accept=".jpg,.jpeg,.png,.gif,.webp"
-                  onChange={handleImageChange}
-                  disabled={uploading}
-                  style={{ display: "none" }}
-                />
-                {uploading ? "..." : "📷"}
+              <label className="profile-avatar-edit" title="Change photo">
+                <input type="file" accept=".jpg,.jpeg,.png,.gif,.webp" onChange={handleImageChange} disabled={uploading} style={{ display: "none" }} />
+                {uploading ? (
+                  <span style={{ fontSize: "0.65rem", color: "#888" }}>...</span>
+                ) : (
+                  <img src="/camera.png" alt="Upload photo" className="profile-icon-camera" />
+                )}
               </label>
             </div>
             <p className="profile-avatar-hint">Supported: {SUPPORTED_EXTENSIONS}</p>
           </div>
 
           <div className="profile-info">
-            <h1 className="profile-name">
-              {user?.firstname} {user?.lastname}
-            </h1>
+            <h1 className="profile-name">{user?.firstname} {user?.lastname}</h1>
             <p className="profile-username">@{user?.username}</p>
-            {user?.institution && (
-              <p className="profile-institution">🎓 {user.institution}</p>
-            )}
+            {user?.institution && <p className="profile-institution">🎓 {user.institution}</p>}
           </div>
         </div>
 
+        {/* Details card */}
         <div className="profile-details">
           <div className="profile-details-header">
             <h2>Profile Details</h2>
             {!isEditing && (
               <button className="profile-edit-btn" onClick={() => setIsEditing(true)}>
-                ✏️ Edit
+                <img src="/write.png" alt="" className="profile-icon-write" />
+                Edit
               </button>
             )}
           </div>
 
           {isEditing ? (
             <>
-              <div className="profile-field">
-                <label htmlFor="firstname">First Name</label>
-                <input
-                  type="text"
-                  id="firstname"
-                  name="firstname"
-                  value={editForm.firstname}
-                  onChange={handleEditChange}
-                  className="profile-input"
-                />
-              </div>
-              <div className="profile-field">
-                <label htmlFor="lastname">Last Name</label>
-                <input
-                  type="text"
-                  id="lastname"
-                  name="lastname"
-                  value={editForm.lastname}
-                  onChange={handleEditChange}
-                  className="profile-input"
-                />
-              </div>
-              <div className="profile-field">
-                <label>Username</label>
-                <p className="profile-readonly">{user?.username} (cannot be changed)</p>
-              </div>
-              <div className="profile-field">
-                <label htmlFor="institution">Institution</label>
-                <input
-                  type="text"
-                  id="institution"
-                  name="institution"
-                  value={editForm.institution}
-                  onChange={handleEditChange}
-                  className="profile-input"
-                  placeholder="Enter your institution"
-                />
-              </div>
-
+              <div className="profile-field"><label htmlFor="firstname">First Name</label><input type="text" id="firstname" name="firstname" value={editForm.firstname} onChange={handleEditChange} className="profile-input" /></div>
+              <div className="profile-field"><label htmlFor="lastname">Last Name</label><input type="text" id="lastname" name="lastname" value={editForm.lastname} onChange={handleEditChange} className="profile-input" /></div>
+              <div className="profile-field"><label>Username</label><p className="profile-readonly">{user?.username} (cannot be changed)</p></div>
+              <div className="profile-field"><label htmlFor="institution">Institution</label><input type="text" id="institution" name="institution" value={editForm.institution} onChange={handleEditChange} className="profile-input" placeholder="Enter your institution" /></div>
               <div className="profile-actions">
-                <button
-                  className="profile-save-btn"
-                  onClick={handleSaveProfile}
-                  disabled={saving}
-                >
-                  {saving ? "Saving..." : "Save Changes"}
-                </button>
-                <button
-                  className="profile-cancel-btn"
-                  onClick={handleCancelEdit}
-                  disabled={saving}
-                >
-                  Cancel
-                </button>
+                <button className="profile-save-btn" onClick={handleSaveProfile} disabled={saving}>{saving ? "Saving..." : "Save Changes"}</button>
+                <button className="profile-cancel-btn" onClick={handleCancelEdit} disabled={saving}>Cancel</button>
               </div>
             </>
           ) : (
             <>
-              <div className="profile-field">
-                <label>First Name</label>
-                <p>{user?.firstname}</p>
-              </div>
-              <div className="profile-field">
-                <label>Last Name</label>
-                <p>{user?.lastname}</p>
-              </div>
-              <div className="profile-field">
-                <label>Username</label>
-                <p>{user?.username}</p>
-              </div>
-              <div className="profile-field">
-                <label>Institution</label>
-                <p>{user?.institution || "Not specified"}</p>
-              </div>
+              <div className="profile-field"><label>First Name</label><p>{user?.firstname}</p></div>
+              <div className="profile-field"><label>Last Name</label><p>{user?.lastname}</p></div>
+              <div className="profile-field"><label>Username</label><p>{user?.username}</p></div>
+              <div className="profile-field"><label>Institution</label><p>{user?.institution || "Not specified"}</p></div>
             </>
           )}
         </div>
       </div>
 
       <style>{`
-        .profile-container {
-          max-width: 600px;
-          margin: 2rem auto;
-        }
+        .profile-container { max-width: 600px; margin: 2rem auto; }
 
         .profile-header {
-          display: flex;
-          gap: 2rem;
-          align-items: center;
-          padding: 2rem;
-          background: #fff;
-          border-radius: 16px;
-          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-          margin-bottom: 1.5rem;
+          display: flex; gap: 2rem; align-items: center;
+          padding: 2rem; background: #fff; border-radius: 16px;
+          box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 1.5rem;
         }
-
-        .profile-avatar-section {
-          text-align: center;
-        }
-
-        .profile-avatar-wrapper {
-          position: relative;
-          width: 120px;
-          height: 120px;
-        }
-
-        .profile-avatar-img {
-          width: 120px;
-          height: 120px;
-          border-radius: 50%;
-          object-fit: cover;
-          border: 4px solid #f0c040;
-        }
-
+        .profile-avatar-section { text-align: center; }
+        .profile-avatar-wrapper { position: relative; width: 120px; height: 120px; }
+        .profile-avatar-img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #f0c040; }
         .profile-avatar-placeholder {
-          width: 120px;
-          height: 120px;
-          border-radius: 50%;
+          width: 120px; height: 120px; border-radius: 50%;
           background: linear-gradient(135deg, #f0c040 0%, #e0b030 100%);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 3rem;
-          font-weight: 700;
-          color: #1a1a1a;
-          border: 4px solid #e0b030;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 3rem; font-weight: 700; color: #1a1a1a; border: 4px solid #e0b030;
         }
-
         .profile-avatar-edit {
-          position: absolute;
-          bottom: 0;
-          right: 0;
-          width: 36px;
-          height: 36px;
-          background: #fff;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-          font-size: 1rem;
+          position: absolute; bottom: 0; right: 0;
+          width: 36px; height: 36px; background: #fff; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.18);
           transition: transform 0.15s;
         }
+        .profile-avatar-edit:hover { transform: scale(1.12); }
 
-        .profile-avatar-edit:hover {
-          transform: scale(1.1);
-        }
+        .profile-icon-camera { width: 17px; height: 17px; object-fit: contain; display: block; filter: brightness(0) saturate(100%); }
+        .profile-icon-write { width: 13px; height: 13px; object-fit: contain; display: inline-block; vertical-align: middle; filter: brightness(0) saturate(100%) invert(35%); }
 
-        .profile-avatar-hint {
-          margin-top: 0.5rem;
-          font-size: 0.7rem;
-          color: #888;
-        }
+        html.dark-mode .profile-icon-camera { filter: brightness(0) saturate(100%) invert(100%); }
+        html.dark-mode .profile-icon-write { filter: brightness(0) saturate(100%) invert(75%); }
 
-        .profile-info {
-          flex: 1;
-        }
+        .profile-avatar-hint { margin-top: 0.5rem; font-size: 0.7rem; color: #888; }
+        .profile-info { flex: 1; }
+        .profile-name { margin: 0; font-size: 1.75rem; font-weight: 700; color: #1a1a1a; }
+        .profile-username { margin: 0.25rem 0 0; font-size: 1rem; color: #888; }
+        .profile-institution { margin: 0.5rem 0 0; font-size: 0.9rem; color: #666; }
 
-        .profile-name {
-          margin: 0;
-          font-size: 1.75rem;
-          font-weight: 700;
-          color: #1a1a1a;
-        }
-
-        .profile-username {
-          margin: 0.25rem 0 0;
-          font-size: 1rem;
-          color: #888;
-        }
-
-        .profile-institution {
-          margin: 0.5rem 0 0;
-          font-size: 0.9rem;
-          color: #666;
-        }
-
-        .profile-details {
-          padding: 1.5rem;
-          background: #fff;
-          border-radius: 16px;
-          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-        }
-
-        .profile-details-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 1rem;
-        }
-
-        .profile-details h2 {
-          margin: 0;
-          font-size: 1.1rem;
-          color: #1a1a1a;
-        }
+        .profile-details { padding: 1.5rem; background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+        .profile-details-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .profile-details h2 { margin: 0; font-size: 1.1rem; color: #1a1a1a; }
 
         .profile-edit-btn {
-          background: none;
-          border: 1px solid #ddd;
-          padding: 0.4rem 0.8rem;
-          border-radius: 8px;
-          cursor: pointer;
-          font-size: 0.85rem;
-          color: #666;
-          transition: all 0.15s;
+          background: none; border: 1px solid #ddd; padding: 0.4rem 0.8rem;
+          border-radius: 8px; cursor: pointer; font-size: 0.85rem; color: #666;
+          display: inline-flex; align-items: center; gap: 5px; transition: all 0.15s;
         }
+        .profile-edit-btn:hover { background: #f5f5f5; border-color: #ccc; }
 
-        .profile-edit-btn:hover {
-          background: #f5f5f5;
-          border-color: #ccc;
-        }
+        .profile-field { padding: 0.75rem 0; border-bottom: 1px solid #eee; }
+        .profile-field:last-child { border-bottom: none; }
+        .profile-field label { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-bottom: 0.25rem; }
+        .profile-field p { margin: 0; font-size: 1rem; color: #1a1a1a; }
+        .profile-readonly { color: #888 !important; font-style: italic; }
 
-        .profile-field {
-          padding: 0.75rem 0;
-          border-bottom: 1px solid #eee;
-        }
+        .profile-input { width: 100%; padding: 0.6rem 0.8rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; transition: border-color 0.15s; box-sizing: border-box; }
+        .profile-input:focus { outline: none; border-color: #f0c040; }
 
-        .profile-field:last-child {
-          border-bottom: none;
-        }
+        .profile-actions { display: flex; gap: 0.75rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #eee; }
+        .profile-save-btn { flex: 1; padding: 0.75rem 1rem; background: linear-gradient(135deg, #f0c040 0%, #e0b030 100%); border: none; border-radius: 8px; color: #1a1a1a; font-weight: 600; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+        .profile-save-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(240,192,64,0.4); }
+        .profile-save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .profile-cancel-btn { padding: 0.75rem 1rem; background: #f5f5f5; border: 1px solid #ddd; border-radius: 8px; color: #666; cursor: pointer; transition: background 0.15s; }
+        .profile-cancel-btn:hover:not(:disabled) { background: #eee; }
+        .profile-cancel-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        .profile-field label {
-          display: block;
-          font-size: 0.75rem;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          color: #888;
-          margin-bottom: 0.25rem;
-        }
-
-        .profile-field p {
-          margin: 0;
-          font-size: 1rem;
-          color: #1a1a1a;
-        }
-
-        .profile-readonly {
-          color: #888 !important;
-          font-style: italic;
-        }
-
-        .profile-input {
-          width: 100%;
-          padding: 0.6rem 0.8rem;
-          border: 1px solid #ddd;
-          border-radius: 8px;
-          font-size: 1rem;
-          transition: border-color 0.15s;
-        }
-
-        .profile-input:focus {
-          outline: none;
-          border-color: #f0c040;
-        }
-
-        .profile-actions {
-          display: flex;
-          gap: 0.75rem;
-          margin-top: 1.5rem;
-          padding-top: 1rem;
-          border-top: 1px solid #eee;
-        }
-
-        .profile-save-btn {
-          flex: 1;
-          padding: 0.75rem 1rem;
-          background: linear-gradient(135deg, #f0c040 0%, #e0b030 100%);
-          border: none;
-          border-radius: 8px;
-          color: #1a1a1a;
-          font-weight: 600;
-          cursor: pointer;
-          transition: transform 0.15s, box-shadow 0.15s;
-        }
-
-        .profile-save-btn:hover:not(:disabled) {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(240, 192, 64, 0.4);
-        }
-
-        .profile-save-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        .profile-cancel-btn {
-          padding: 0.75rem 1rem;
-          background: #f5f5f5;
-          border: 1px solid #ddd;
-          border-radius: 8px;
-          color: #666;
-          cursor: pointer;
-          transition: background 0.15s;
-        }
-
-        .profile-cancel-btn:hover:not(:disabled) {
-          background: #eee;
-        }
-
-        .profile-cancel-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        html.dark-mode .profile-header,
-        html.dark-mode .profile-details {
-          background: #1e1e1e;
-        }
-
-        html.dark-mode .profile-name,
-        html.dark-mode .profile-details h2,
-        html.dark-mode .profile-field p {
-          color: #fff;
-        }
-
-        html.dark-mode .profile-avatar-edit {
-          background: #2a2a2a;
-        }
-
-        html.dark-mode .profile-input {
-          background: #2a2a2a;
-          border-color: #444;
-          color: #fff;
-        }
-
-        html.dark-mode .profile-edit-btn {
-          border-color: #444;
-          color: #aaa;
-        }
-
-        html.dark-mode .profile-edit-btn:hover {
-          background: #2a2a2a;
-        }
-
-        html.dark-mode .profile-cancel-btn {
-          background: #2a2a2a;
-          border-color: #444;
-          color: #aaa;
-        }
+        html.dark-mode .profile-header, html.dark-mode .profile-details { background: #1e1e1e; }
+        html.dark-mode .profile-name, html.dark-mode .profile-details h2, html.dark-mode .profile-field p { color: #fff; }
+        html.dark-mode .profile-avatar-edit { background: #2a2a2a; }
+        html.dark-mode .profile-input { background: #2a2a2a; border-color: #444; color: #fff; }
+        html.dark-mode .profile-edit-btn { border-color: #444; color: #aaa; }
+        html.dark-mode .profile-edit-btn:hover { background: #2a2a2a; }
+        html.dark-mode .profile-cancel-btn { background: #2a2a2a; border-color: #444; color: #aaa; }
+        html.dark-mode .profile-field { border-bottom-color: #333; }
 
         @media (max-width: 600px) {
-          .profile-header {
-            flex-direction: column;
-            text-align: center;
-          }
-
-          .profile-info {
-            text-align: center;
-          }
+          .profile-header { flex-direction: column; text-align: center; }
+          .profile-info { text-align: center; }
         }
       `}</style>
     </div>

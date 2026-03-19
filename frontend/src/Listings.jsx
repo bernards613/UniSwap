@@ -170,7 +170,7 @@ export default function Listings({ onMessageSeller }) {
       {/* SEARCH */}
       <div className="mp-hero">
         <div className="mp-search-wrap">
-          <span className="mp-search-icon"></span>
+          <img src="/search.png" alt="" className="mp-search-icon-img" />
           <input
             className="mp-search-input"
             type="text"

@@ -1,7 +1,6 @@
 /**
- * Side panel shown after 1.5s hover on a listing card.
- * Shows product name, seller, description, price. Position: left or right of card.
- * Height: top-aligned if panel shorter than card; vertically centered if taller.
+ * Side panel shown after 1s hover on a listing card.
+ * Shows product name, seller, location, description, price.
  */
 import { useRef, useEffect, useState } from "react";
 
@@ -9,7 +8,7 @@ const PANEL_WIDTH = 260;
 
 export default function ListingHoverPanel({ listing, side, cardWrapRef, listingItemId, onClose }) {
   const panelRef = useRef(null);
-  const [align, setAlign] = useState("top"); // "top" | "center"
+  const [align, setAlign] = useState("top");
 
   useEffect(() => {
     if (!panelRef.current || !cardWrapRef?.current || listingItemId == null) return;
@@ -37,7 +36,10 @@ export default function ListingHoverPanel({ listing, side, cardWrapRef, listingI
       <div className="listing-hover-panel-inner">
         <p className="listing-hover-panel-name">{productName}</p>
         <p className="listing-hover-panel-seller">by {sellerName}</p>
-        <p className="listing-hover-panel-location">Location: {listing.location || "—"}</p>
+        <p className="listing-hover-panel-location">
+          <img src="/location.png" alt="" className="listing-hover-panel-location-icon" />
+          {listing.location || "—"}
+        </p>
         <p className="listing-hover-panel-desc">{listing.description || "No description."}</p>
         <p className="listing-hover-panel-price">${parseFloat(listing.price).toFixed(2)}</p>
       </div>

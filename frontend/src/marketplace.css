@@ -1288,3 +1288,82 @@ html.dark-mode .mp-listing-card-desc-seemore:hover {
     flex: 1;
   }
 }
+
+/* ── Custom PNG Icons ── */
+
+/* Search bar icon */
+.mp-search-icon-img {
+  width: 17px;
+  height: 17px;
+  object-fit: contain;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+  opacity: 0.45;
+  filter: brightness(0) saturate(100%);
+}
+
+html.dark-mode .mp-search-icon-img {
+  filter: brightness(0) saturate(100%) invert(100%);
+  opacity: 0.5;
+}
+
+/* Location icon in hover panel */
+.listing-hover-panel-location {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  color: #666;
+  margin: 0 0 0.35rem;
+}
+
+.listing-hover-panel-location-icon {
+  width: 12px;
+  height: 12px;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: brightness(0) saturate(100%) invert(40%);
+}
+
+/* Location icon in detail view */
+.listing-detail-location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0.25rem 0 0.75rem;
+}
+
+.listing-detail-icon-location {
+  width: 13px;
+  height: 13px;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: brightness(0) saturate(100%) invert(40%);
+}
+
+/* Action button icons (comment, bookmark) */
+.listing-detail-btn-icon {
+  width: 15px;
+  height: 15px;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: brightness(0) saturate(100%) invert(100%);
+  vertical-align: middle;
+}
+
+/* Ensure detail action buttons are flex so icon + text align */
+.listing-detail-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+html.dark-mode .listing-hover-panel-location-icon {
+  filter: brightness(0) saturate(100%) invert(70%);
+}
+
+html.dark-mode .listing-detail-icon-location {
+  filter: brightness(0) saturate(100%) invert(70%);
+}

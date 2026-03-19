@@ -113,7 +113,7 @@ export default function BuyerRequests({ onMessageBuyer }) {
     <div className="mp-page">
       <div className="mp-hero">
         <div className="mp-search-wrap">
-          <span className="mp-search-icon"></span>
+          <img src="/search.png" alt="" className="mp-search-icon-img" />
           <input
             className="mp-search-input"
             type="text"
