@@ -118,6 +118,24 @@ def bookmark_listing(
 
     return {"message": "Bookmarked", "bookmarkid": bookmark.bookmarkid}
 
+@router.delete("/bookmark/{bookmarkid}")
+def remove_bookmark(
+    bookmarkid: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    bookmark = db.query(models.Bookmark).filter(
+        models.Bookmark.bookmarkid == bookmarkid,
+        models.Bookmark.userid == current_user.userid  # ensure ownership
+    ).first()
+
+    if not bookmark:
+        raise HTTPException(status_code=404, detail="Bookmark not found")
+
+    db.delete(bookmark)
+    db.commit()
+    return {"message": "Bookmark removed"}
+
 @router.get("/me", response_model=schemas.User)
 def get_me(current_user: models.User = Depends(get_current_user)):
     return current_user

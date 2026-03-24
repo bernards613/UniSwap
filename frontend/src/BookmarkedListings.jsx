@@ -216,6 +216,7 @@ export default function BookmarkedListings({ token, onMessageSeller }) {
           listing={detailListing}
           onClose={() => setDetailListing(null)}
           onPurchase={handlePurchase}
+          onRemoveBookmark={() => removeBookmark(detailListing.bookmarkid)}
           onBookmark={handleBookmark}
           onMessage={onMessageSeller}
           statusColor={statusColor}

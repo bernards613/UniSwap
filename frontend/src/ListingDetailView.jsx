@@ -2,7 +2,7 @@
  * Full listing detail view: large image (left ~75%), product info and actions (right).
  * Optional purchaseDate (ISO string) for purchase history: shows date/time and hides Purchase/Bookmark.
  */
-export default function ListingDetailView({ listing, onClose, onPurchase, onBookmark, onMessage, statusColor, purchaseDate }) {
+export default function ListingDetailView({ listing, onClose, onPurchase, onBookmark, onRemoveBookmark, onMessage, statusColor, purchaseDate }) {
   if (!listing) return null;
 
   const isPurchase = Boolean(purchaseDate);
@@ -65,6 +65,17 @@ export default function ListingDetailView({ listing, onClose, onPurchase, onBook
 
             {!isPurchase && (
               <div className="listing-detail-actions">
+                {onRemoveBookmark && (
+                  <button
+                    type="button"
+                    className="listing-detail-btn listing-detail-btn-bookmark"
+                    style={{ backgroundColor: "#dc2626" }}
+                    onClick={onRemoveBookmark}
+                  >
+                    <img src="/bookmark-white.png" alt="" className="listing-detail-btn-icon" />
+                    Remove Bookmark
+                  </button>
+                )}
                 <button
                   type="button"
                   className="listing-detail-btn listing-detail-btn-message"
@@ -73,14 +84,16 @@ export default function ListingDetailView({ listing, onClose, onPurchase, onBook
                   <img src="/comment.png" alt="" className="listing-detail-btn-icon" />
                   Message
                 </button>
-                <button
-                  type="button"
-                  className="listing-detail-btn listing-detail-btn-bookmark"
-                  onClick={() => onBookmark(listing.itemid)}
-                >
-                  <img src="/bookmark-white.png" alt="" className="listing-detail-btn-icon" />
-                  Bookmark
-                </button>
+                {!onRemoveBookmark && onBookmark && (
+                  <button
+                    type="button"
+                    className="listing-detail-btn listing-detail-btn-bookmark"
+                    onClick={() => onBookmark(listing.itemid)}
+                  >
+                    <img src="/bookmark-white.png" alt="" className="listing-detail-btn-icon" />
+                    Bookmark
+                  </button>
+                )}
                 {listing.status === "Available" && (
                   <button
                     type="button"
@@ -90,7 +103,7 @@ export default function ListingDetailView({ listing, onClose, onPurchase, onBook
                     Buy it now
                   </button>
                 )}
-              </div>
+              </div> 
             )}
           </div>
         </div>
