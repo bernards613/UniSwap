@@ -1,0 +1,117 @@
+[33m505e469[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Messaging: images, inbox fixes, delete messages/conversations
+[33mda9d6df[m Bookmark removal feature
+[33m515c9c8[m Added icons and images into the frontend including listings, messages, profile, location.
+[33m696b709[m Listing improvements: 50/50 layout removed, zoom removed, hover panel, bookmarks/purchases API, nav active, dark mode fixes
+[33m5a7649d[m Listing fixes: title field, create/delete API, My Listings hover Edit/Delete, reset+seed script and test images
+[33m3c281ab[m Listings UI: card layout, 1s hover zoom, detail view 75/25, seller name, description label, centered buttons, minimal close X
+[33ma687773[m Edit listing fix
+[33m04f238e[m Database bug fixes
+[33m80f2b42[m Merge group main with my changes (Buyer Requests, My Listings/Requests, messaging, listing UX)
+[33meace322[m Add Buyer Requests, My Listings, My Requests, messaging; listing See more/less; Create Listing 100-word limit + counter, photo required
+[33m3b50091[m Removed Icons
+[33m58161b3[m Added toast and confirmmodal files to now be able to have integrated popups that match the theme of the UI when notified of saving a bookmark or editing a listing and etc.
+[33m396a4fa[m made the login match the theme of the rest of the UI, also got rid of the top header of the login page becuase it didnt look right
+[33m54527b8[m[33m ([m[1;31morigin/feature/messaging[m[33m)[m Merge Alfonso and Joseph's changes - Combined user profile system, messaging features, and listing enhancements
+[33m2664f7e[m Add user profile system, messaging enhancements, and listing improvements
+[33m9917d6d[m Add messaging feature with 3 new use cases: Send Message, View Conversation, View Inbox
+[33mbe6a362[m implemented the frontend for bookmarked listings with the new addition of being able to delete a bookmark and also the purchase history, and also made some color/theme changes
+[33me0501c9[m Completed bug fixes
+[33m0b40d5b[m transactions and bookmarks bug fixes
+[33m885c218[m Data bug fix
+[33mc5c898d[m Button fixes
+[33ma7a4946[m Routing bug fixes
+[33m0c7d954[m Routing bug fixes
+[33m9ab30a3[m Screen routing in App.jsx
+[33mee99f0b[m PurchaseHistory file
+[33m27bf172[m BookmarkedListings file
+[33mdf04ee7[m Transcations and bookmarks routers
+[33m4c5b997[m Header update for new purchases and bookmarks
+[33m566df72[m Import bug fix
+[33m7e7b216[m Transcations routing
+[33m01938a1[m Bookmark and purchase button, backend routing
+[33ma22cf9f[m Merge branch 'main' of https://github.com/bernards613/UniSwap
+[33m18b5840[m My Listings Delete
+[33meb02982[m homepage implemented, adjusted listings and added marketplace.css as the styling for home page
+[33ma8fe4fd[m some logos at 3am
+[33mdbaf08f[m Small UI upgrade
+[33mf26e33f[m Resolved merge conflict for .env, keep local version
+[33m0c8dc78[m Update DATABASE_URL with new password
+[33m68cee06[m stop tracking .env file
+[33m71c117c[m Deletion bug fixes
+[33m9001efd[m Deletion fix
+[33md6c5471[m Merge branch 'main' of https://github.com/bernards613/UniSwap
+[33m05877ea[m Deleting listings
+[33m20794f4[m Update DATABASE_URL in .env file
+[33m0e68646[m Creating listings in frontend
+[33m4566eec[m Add listings page
+[33m747dfa9[m cleanup
+[33m7aa0179[m Frontend fix
+[33maf95b20[m Merge branch 'main' of https://github.com/bernards613/UniSwap
+[33ma87247e[m Screen switcher
+[33mc8d4734[m added listings file
+[33m337e2f6[m Frontend fix
+[33m47f06fc[m Frontend fix
+[33m74d2897[m Merge branch 'main' of https://github.com/bernards613/UniSwap
+[33m273ad79[m Merge branch 'settings-page'
+[33m62065cd[m[33m ([m[1;31morigin/settings-page[m[33m)[m Removed Settings as main page
+[33m65271e0[m Dark Mode Update
+[33m0a7add5[m Merge pull request #2 from bernards613/login-page
+[33m7cd0637[m[33m ([m[1;31morigin/login-page[m[33m)[m Add login and create account pages with FastAPI backend connection
+[33mccca881[m Added Dark Mode to Settings Page
+[33mc92256b[m Merge pull request #1 from bernards613/settings-page
+[33m7031bd7[m Update header formatting in README.md
+[33m3822406[m Listings API
+[33mb04099a[m User authorization endpoint
+[33me996b5f[m Login endpoints
+[33m3a832ad[m Created settings page
+[33mfc11a99[m Add warning comment to __init__.py
+[33m4cf7573[m Add warning comment to __init__.py
+[33m1591873[m I fixed my name
+[33m5d40365[m Testing frontend change
+[33m47b6e89[m Testing frontend change
+[33m9cfffde[m API Fixes
+[33me012364[m User API setup
+[33m02b0068[m Added username column
+[33m6cd4147[m remove comment
+[33m4c739b8[m Joey testing a push
+[33mcfca520[m Merge branch 'main' of https://github.com/bernards613/UniSwap
+[33m3dcb5b6[m Backend startup
+[33m8ac0114[m .env file
+[33m14fff8f[m Data tables created and models updated
+[33mb82e6f9[m Database tests
+[33m18a9f92[m Update README
+[33mefc583d[m Requirements text
+[33mbc3154e[m Updated frontend gitignore
+[33m16f525a[m Router files
+[33m14071ef[m Add backend files
+[33m75850e6[m React frontend setup
+[33m880689c[m React frontend setup
+[33m67aeb8c[m Create .gitkeep
+[33m747c280[m Delete backend directory
+[33mdcb6f16[m Configure PostgreSQL datasource properties
+[33m0f010b7[m Backend src folders
+[33mf216138[m Replace MySQL dependency with PostgreSQL
+[33mad8a463[m Backend files
+[33m431f434[m Create .gitkeep
+[33m8ae3c9c[m Create .gitkeep
+[33m7f2103c[m Create .gitkeep
+[33m4961dcf[m Create .gitkeep
+[33m12eed8f[m Delete frontend
+[33m1540826[m Delete docs
+[33m27ea3f6[m Delete database
+[33m230b426[m Delete backend
+[33m77c7d7c[m Create docs
+[33m3a74341[m Create database
+[33medc4ad1[m Create frontend
+[33m21cacd2[m Create backend
+[33m94b35cb[m Update project title in README.md
+[33mee6d94f[m Update README.md
+[33mcef6211[m wireframe image
+[33md616563[m Update README.md
+[33m4e62f5b[m Added Project Description
+[33m440b997[m Update README.md
+[33mf8da61d[m Update README.md
+[33mb4532b8[m Secondary Logo Added
+[33m08c96a1[m Update README.md
+[33m697b2d1[m Added images folder
+[33ma351c6b[m Initial commit
