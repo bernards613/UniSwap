@@ -156,7 +156,7 @@ def update_profile_picture(
 @router.put("/profile", response_model=schemas.User)
 def update_profile(
     data: schemas.ProfileUpdate,
-    db: Session = Depends(get_db), #temporary
+    db: Session = Depends(get_db), #temporar
     current_user: models.User = Depends(get_current_user)
 ):
     if data.firstname is not None:
