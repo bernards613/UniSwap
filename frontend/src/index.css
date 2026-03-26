@@ -95,13 +95,23 @@ button:hover {
 }
 
 .nav-btn-active {
-  color: #fff;
-  border-bottom: 2px solid currentColor;
+  color: #1a1a1a;
+  border-bottom: 2px solid #e0ae3a;
   padding-bottom: 2px;
 }
 
 .nav-btn-active:hover {
-  color: #fff;
+  color: #1a1a1a;
+  opacity: 1;
+}
+
+html.dark-mode .nav-btn-active {
+  color: #fde68a;
+  border-bottom-color: #fde68a;
+}
+
+html.dark-mode .nav-btn-active:hover {
+  color: #fde68a;
   opacity: 1;
 }
 
@@ -445,7 +455,6 @@ html.dark-mode .cancel-button:hover {
   background: #444;
 }
 
-/* ── Purchase History Summary ── */
 .ph-summary {
   display: flex;
   align-items: center;

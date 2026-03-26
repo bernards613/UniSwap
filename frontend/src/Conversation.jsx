@@ -1,5 +1,8 @@
 import { useEffect, useState, useRef } from "react";
+import { useToast, ToastContainer } from "./Toast.jsx";
 import "./marketplace.css";
+
+const IMAGE_PREFIX = "[IMAGE]";
 
 export default function Conversation({ token, conversationId, newChatData, onBack, onConversationCreated }) {
   const [conversation, setConversation] = useState(null);
@@ -7,9 +10,12 @@ export default function Conversation({ token, conversationId, newChatData, onBac
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [error, setError] = useState("");
   const [currentConvId, setCurrentConvId] = useState(conversationId);
   const messagesEndRef = useRef(null);
+  const imageInputRef = useRef(null);
+  const { toasts, showToast } = useToast();
 
   useEffect(() => {
     if (conversationId) {
@@ -29,8 +35,8 @@ export default function Conversation({ token, conversationId, newChatData, onBac
       } else {
         setConversation({
           other_user: { firstname: "Seller", userid: newChatData.sellerId },
-          item: { 
-            itemid: newChatData.itemId, 
+          item: {
+            itemid: newChatData.itemId,
             description: newChatData.itemDescription,
             price: newChatData.itemPrice
           }
@@ -41,12 +47,8 @@ export default function Conversation({ token, conversationId, newChatData, onBac
   }, [conversationId, newChatData]);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  }, [messages]);
 
   const loadConversation = async (convId) => {
     if (!convId) return;
@@ -55,11 +57,8 @@ export default function Conversation({ token, conversationId, newChatData, onBac
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
       const response = await fetch(`${apiBaseUrl}/messages/conversation/${convId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
       if (response.ok) {
         const data = await response.json();
         setConversation(data);
@@ -85,25 +84,17 @@ export default function Conversation({ token, conversationId, newChatData, onBac
     const requestId = newChatData?.requestId || conversation?.request?.requestid;
 
     if (!receiverId || (!itemId && !requestId)) {
-      alert("Missing conversation data");
+      showToast("Missing conversation data", "error");
       return;
     }
 
     setSending(true);
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
-      
-      const payload = {
-        receiverid: receiverId,
-        messagecontent: newMessage.trim(),
-      };
-      
-      if (requestId) {
-        payload.requestid = requestId;
-      } else {
-        payload.itemid = itemId;
-      }
-      
+      const payload = { receiverid: receiverId, messagecontent: newMessage.trim() };
+      if (requestId) payload.requestid = requestId;
+      else payload.itemid = itemId;
+
       const response = await fetch(`${apiBaseUrl}/messages/send`, {
         method: "POST",
         headers: {
@@ -116,34 +107,139 @@ export default function Conversation({ token, conversationId, newChatData, onBac
       if (response.ok) {
         const data = await response.json();
         setNewMessage("");
-        
         if (!currentConvId && data.conversationid) {
           setCurrentConvId(data.conversationid);
-          if (onConversationCreated) {
-            onConversationCreated(data.conversationid);
-          }
+          if (onConversationCreated) onConversationCreated(data.conversationid);
           loadConversation(data.conversationid);
         } else {
           loadConversation(currentConvId);
         }
       } else {
         const errData = await response.json();
-        alert(errData.detail || "Failed to send message");
+        showToast(errData.detail || "Failed to send message", "error");
       }
     } catch (err) {
       console.error("Error sending message:", err);
-      alert("Failed to send message");
+      showToast("Failed to send message", "error");
     } finally {
       setSending(false);
     }
   };
 
+  const handleImageSelect = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      showToast("Please select an image file", "error");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      showToast("Image must be under 8MB", "error");
+      return;
+    }
+
+    const receiverId = newChatData?.sellerId || conversation?.other_user?.userid;
+    const itemId = newChatData?.itemId || conversation?.item?.itemid;
+    const requestId = newChatData?.requestId || conversation?.request?.requestid;
+
+    if (!receiverId || (!itemId && !requestId)) {
+      showToast("Cannot send image — missing conversation data", "error");
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const uploadRes = await fetch(`${apiBaseUrl}/messages/upload-image`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ image: base64 }),
+      });
+
+      if (!uploadRes.ok) {
+        const err = await uploadRes.json();
+        showToast(err.detail || "Image upload failed", "error");
+        return;
+      }
+
+      const { url } = await uploadRes.json();
+
+      const payload = {
+        receiverid: receiverId,
+        messagecontent: `${IMAGE_PREFIX}${url}`,
+      };
+      if (requestId) payload.requestid = requestId;
+      else payload.itemid = itemId;
+
+      const sendRes = await fetch(`${apiBaseUrl}/messages/send`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (sendRes.ok) {
+        const data = await sendRes.json();
+        showToast("Photo sent!");
+        if (!currentConvId && data.conversationid) {
+          setCurrentConvId(data.conversationid);
+          if (onConversationCreated) onConversationCreated(data.conversationid);
+          loadConversation(data.conversationid);
+        } else {
+          loadConversation(currentConvId);
+        }
+      } else {
+        const err = await sendRes.json();
+        showToast(err.detail || "Failed to send photo", "error");
+      }
+    } catch (err) {
+      console.error("Image send error:", err);
+      showToast("Failed to send photo", "error");
+    } finally {
+      setUploadingImage(false);
+      if (imageInputRef.current) imageInputRef.current.value = "";
+    }
+  };
+
+  const handleUnsend = async (messageid) => {
+    try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+      const response = await fetch(`${apiBaseUrl}/messages/${messageid}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        setMessages((prev) => prev.filter((m) => m.messageid !== messageid));
+        showToast("Message unsent");
+      } else {
+        const err = await response.json();
+        showToast(err.detail || "Could not unsend message", "error");
+      }
+    } catch (err) {
+      console.error("Unsend error:", err);
+      showToast("Network error", "error");
+    }
+  };
+
   const parseUTCDate = (dateStr) => {
     if (!dateStr) return null;
-    if (dateStr.endsWith("Z") || dateStr.includes("+")) {
-      return new Date(dateStr);
-    }
-    return new Date(dateStr + "Z");
+    return dateStr.endsWith("Z") || dateStr.includes("+")
+      ? new Date(dateStr)
+      : new Date(dateStr + "Z");
   };
 
   const formatTime = (dateStr) => {
@@ -158,11 +254,13 @@ export default function Conversation({ token, conversationId, newChatData, onBac
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-
     if (date.toDateString() === today.toDateString()) return "Today";
     if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
     return date.toLocaleDateString();
   };
+
+  const isImageMessage = (content) => content && content.startsWith(IMAGE_PREFIX);
+  const getImageUrl = (content) => content.slice(IMAGE_PREFIX.length);
 
   if (loading) {
     return (
@@ -194,9 +292,7 @@ export default function Conversation({ token, conversationId, newChatData, onBac
     <div className="conv-page">
       {/* Header */}
       <div className="conv-header">
-        <button className="conv-back-btn" onClick={onBack}>
-          ← Back
-        </button>
+        <button className="conv-back-btn" onClick={onBack}>← Back</button>
         <div className="conv-header-info">
           <div className="conv-avatar">
             {conversation?.other_user?.firstname?.charAt(0)?.toUpperCase() || "?"}
@@ -206,7 +302,9 @@ export default function Conversation({ token, conversationId, newChatData, onBac
               {conversation?.other_user?.firstname} {conversation?.other_user?.lastname}
             </div>
             <div className="conv-item-info">
-              Re: {conversation?.item?.description || conversation?.request?.title || "Item"} - {conversation?.request ? "Budget: " : ""}${(conversation?.item?.price || conversation?.request?.maxprice)?.toFixed(2) || "Flexible"}
+              Re: {conversation?.item?.description || conversation?.request?.title || "Item"} -{" "}
+              {conversation?.request ? "Budget: " : ""}$
+              {(conversation?.item?.price || conversation?.request?.maxprice)?.toFixed(2) || "Flexible"}
             </div>
           </div>
         </div>
@@ -232,9 +330,34 @@ export default function Conversation({ token, conversationId, newChatData, onBac
                   </div>
                 )}
                 <div className={`conv-bubble-wrap ${msg.is_mine ? "mine" : "theirs"}`}>
+                  {/* Unsend button — only for own messages */}
+                  {msg.is_mine && (
+                    <button
+                      type="button"
+                      className="conv-unsend-btn"
+                      title="Unsend message"
+                      onClick={() => handleUnsend(msg.messageid)}
+                    >
+                      ×
+                    </button>
+                  )}
                   <div className={`conv-bubble ${msg.is_mine ? "mine" : "theirs"}`}>
-                    <p>{msg.messagecontent}</p>
-                    <span className="conv-time">{formatTime(msg.messagetimestamp)}</span>
+                    {isImageMessage(msg.messagecontent) ? (
+                      <>
+                        <img
+                          src={getImageUrl(msg.messagecontent)}
+                          alt="Sent photo"
+                          className="conv-msg-image"
+                          onClick={() => window.open(getImageUrl(msg.messagecontent), "_blank")}
+                        />
+                        <span className="conv-time">{formatTime(msg.messagetimestamp)}</span>
+                      </>
+                    ) : (
+                      <>
+                        <p>{msg.messagecontent}</p>
+                        <span className="conv-time">{formatTime(msg.messagetimestamp)}</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -244,20 +367,50 @@ export default function Conversation({ token, conversationId, newChatData, onBac
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
+      {/* Input area */}
       <form className="conv-input-wrap" onSubmit={sendMessage}>
+        {/* Hidden file input */}
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={handleImageSelect}
+        />
+
+        {/* Image upload button */}
+        <button
+          type="button"
+          className="conv-img-btn"
+          title="Send a photo"
+          onClick={() => imageInputRef.current?.click()}
+          disabled={uploadingImage || sending}
+        >
+          {uploadingImage ? (
+            <span className="conv-img-uploading">...</span>
+          ) : (
+            <img src="/camera.png" alt="Send photo" />
+          )}
+        </button>
+
         <input
           type="text"
           className="conv-input"
           placeholder="Type a message..."
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          disabled={sending}
+          disabled={sending || uploadingImage}
         />
-        <button type="submit" className="conv-send-btn" disabled={!newMessage.trim() || sending}>
+        <button
+          type="submit"
+          className="conv-send-btn"
+          disabled={!newMessage.trim() || sending || uploadingImage}
+        >
           {sending ? "..." : "Send"}
         </button>
       </form>
+
+      <ToastContainer toasts={toasts} />
 
       <style>{`
         .conv-page {
@@ -286,10 +439,7 @@ export default function Conversation({ token, conversationId, newChatData, onBac
           padding: 0.5rem;
           transition: color 0.15s;
         }
-
-        .conv-back-btn:hover {
-          color: #1a1a1a;
-        }
+        .conv-back-btn:hover { color: #1a1a1a; }
 
         .conv-header-info {
           display: flex;
@@ -313,16 +463,8 @@ export default function Conversation({ token, conversationId, newChatData, onBac
           color: #1a1a1a;
         }
 
-        .conv-name {
-          font-weight: 600;
-          font-size: 1rem;
-          color: #1a1a1a;
-        }
-
-        .conv-item-info {
-          font-size: 0.8rem;
-          color: #888;
-        }
+        .conv-name { font-weight: 600; font-size: 1rem; color: #1a1a1a; }
+        .conv-item-info { font-size: 0.8rem; color: #888; }
 
         .conv-messages {
           flex: 1;
@@ -331,17 +473,9 @@ export default function Conversation({ token, conversationId, newChatData, onBac
           background: #f8f9fa;
         }
 
-        .conv-empty {
-          text-align: center;
-          color: #888;
-          padding: 2rem;
-        }
+        .conv-empty { text-align: center; color: #888; padding: 2rem; }
 
-        .conv-date-divider {
-          text-align: center;
-          margin: 1rem 0;
-        }
-
+        .conv-date-divider { text-align: center; margin: 1rem 0; }
         .conv-date-divider span {
           background: #e2e8f0;
           padding: 0.25rem 0.75rem;
@@ -353,15 +487,10 @@ export default function Conversation({ token, conversationId, newChatData, onBac
         .conv-bubble-wrap {
           display: flex;
           margin-bottom: 0.5rem;
+          position: relative;
         }
-
-        .conv-bubble-wrap.mine {
-          justify-content: flex-end;
-        }
-
-        .conv-bubble-wrap.theirs {
-          justify-content: flex-start;
-        }
+        .conv-bubble-wrap.mine { justify-content: flex-end; }
+        .conv-bubble-wrap.theirs { justify-content: flex-start; }
 
         .conv-bubble {
           max-width: 70%;
@@ -369,38 +498,25 @@ export default function Conversation({ token, conversationId, newChatData, onBac
           border-radius: 16px;
           position: relative;
         }
-
         .conv-bubble.mine {
           background: #f0c040;
           color: #1a1a1a;
           border-bottom-right-radius: 4px;
         }
-
         .conv-bubble.theirs {
           background: #fff;
           color: #1a1a1a;
           border-bottom-left-radius: 4px;
           box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
-
-        .conv-bubble p {
-          margin: 0 0 0.25rem;
-          font-size: 0.95rem;
-          line-height: 1.4;
-        }
-
-        .conv-time {
-          font-size: 0.7rem;
-          color: rgba(0,0,0,0.5);
-        }
-
-        .conv-bubble.mine .conv-time {
-          color: rgba(0,0,0,0.6);
-        }
+        .conv-bubble p { margin: 0 0 0.25rem; font-size: 0.95rem; line-height: 1.4; }
+        .conv-time { font-size: 0.7rem; color: rgba(0,0,0,0.5); }
+        .conv-bubble.mine .conv-time { color: rgba(0,0,0,0.6); }
 
         .conv-input-wrap {
           display: flex;
-          gap: 0.75rem;
+          gap: 0.5rem;
+          align-items: center;
           padding: 1rem 1.5rem;
           background: #fff;
           border-top: 1px solid #e2e8f0;
@@ -416,10 +532,7 @@ export default function Conversation({ token, conversationId, newChatData, onBac
           outline: none;
           transition: border-color 0.15s;
         }
-
-        .conv-input:focus {
-          border-color: #f0c040;
-        }
+        .conv-input:focus { border-color: #f0c040; }
 
         .conv-send-btn {
           background: #f0c040;
@@ -432,45 +545,19 @@ export default function Conversation({ token, conversationId, newChatData, onBac
           cursor: pointer;
           transition: background 0.15s, opacity 0.15s;
         }
-
-        .conv-send-btn:hover:not(:disabled) {
-          background: #e0b030;
-        }
-
-        .conv-send-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
+        .conv-send-btn:hover:not(:disabled) { background: #e0b030; }
+        .conv-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         html.dark-mode .conv-header,
         html.dark-mode .conv-input-wrap {
           background: #1a1a1a;
           border-color: #333;
         }
-
-        html.dark-mode .conv-messages {
-          background: #121212;
-        }
-
-        html.dark-mode .conv-bubble.theirs {
-          background: #2a2a2a;
-          color: #fff;
-        }
-
-        html.dark-mode .conv-name {
-          color: #fff;
-        }
-
-        html.dark-mode .conv-input {
-          background: #2a2a2a;
-          border-color: #333;
-          color: #fff;
-        }
-
-        html.dark-mode .conv-date-divider span {
-          background: #333;
-          color: #888;
-        }
+        html.dark-mode .conv-messages { background: #121212; }
+        html.dark-mode .conv-bubble.theirs { background: #2a2a2a; color: #fff; }
+        html.dark-mode .conv-name { color: #fff; }
+        html.dark-mode .conv-input { background: #2a2a2a; border-color: #333; color: #fff; }
+        html.dark-mode .conv-date-divider span { background: #333; color: #888; }
       `}</style>
     </div>
   );

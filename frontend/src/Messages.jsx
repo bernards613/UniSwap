@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
+import ConfirmModal from "./ConfirmModal.jsx";
+import { useToast, ToastContainer } from "./Toast.jsx";
 import "./marketplace.css";
 
 export default function Messages({ token, onOpenConversation }) {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [confirmConfig, setConfirmConfig] = useState(null);
+  const { toasts, showToast } = useToast();
 
   useEffect(() => {
     loadConversations();
@@ -16,11 +20,8 @@ export default function Messages({ token, onOpenConversation }) {
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
       const response = await fetch(`${apiBaseUrl}/messages/inbox`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
       if (response.ok) {
         const data = await response.json();
         setConversations(data);
@@ -36,11 +37,47 @@ export default function Messages({ token, onOpenConversation }) {
     }
   };
 
+  const handleDeleteConversation = (conv) => {
+    setConfirmConfig({
+      message: "Delete this conversation?",
+      subtext: "All messages will be permanently removed.",
+      confirmLabel: "Delete",
+      danger: true,
+      onCancel: () => setConfirmConfig(null),
+      onConfirm: async () => {
+        setConfirmConfig(null);
+        try {
+          const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+          const response = await fetch(
+            `${apiBaseUrl}/messages/conversation/${conv.conversationid}`,
+            {
+              method: "DELETE",
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          if (response.ok) {
+            setConversations((prev) =>
+              prev.filter((c) => c.conversationid !== conv.conversationid)
+            );
+            showToast("Conversation deleted");
+          } else {
+            const err = await response.json();
+            showToast(err.detail || "Could not delete conversation", "error");
+          }
+        } catch (err) {
+          console.error("Delete conversation error:", err);
+          showToast("Network error", "error");
+        }
+      },
+    });
+  };
+
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
-    const date = dateStr.endsWith("Z") || dateStr.includes("+") 
-      ? new Date(dateStr) 
-      : new Date(dateStr + "Z");
+    const date =
+      dateStr.endsWith("Z") || dateStr.includes("+")
+        ? new Date(dateStr)
+        : new Date(dateStr + "Z");
     const now = new Date();
     const diffMs = now - date;
     const diffMins = Math.floor(diffMs / 60000);
@@ -104,17 +141,36 @@ export default function Messages({ token, onOpenConversation }) {
                   </span>
                 </div>
                 <div className="msg-item-info">
-                  Re: {conv.item_description || "Item"} - ${conv.item_price?.toFixed(2) || "0.00"}
+                  Re: {conv.item_description || "Item"} — $
+                  {conv.item_price?.toFixed(2) || "0.00"}
                 </div>
                 <div className="msg-preview">
-                  {conv.last_message?.is_mine && <span style={{ color: "#888" }}>You: </span>}
+                  {conv.last_message?.is_mine && (
+                    <span style={{ color: "#888" }}>You: </span>
+                  )}
                   {conv.last_message?.content || "No messages yet"}
                 </div>
               </div>
+
+              {/* Delete conversation button (appears on hover via CSS) */}
+              <button
+                type="button"
+                className="msg-delete-conv-btn"
+                title="Delete conversation"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteConversation(conv);
+                }}
+              >
+                🗑 Delete
+              </button>
             </div>
           ))}
         </div>
       )}
+
+      {confirmConfig && <ConfirmModal {...confirmConfig} />}
+      <ToastContainer toasts={toasts} />
 
       <style>{`
         .msg-list {
@@ -128,11 +184,13 @@ export default function Messages({ token, onOpenConversation }) {
           align-items: flex-start;
           gap: 1rem;
           padding: 1rem;
+          padding-right: 1rem;
           background: #fff;
           border-radius: 12px;
           box-shadow: 0 2px 8px rgba(0,0,0,0.07);
           cursor: pointer;
           transition: transform 0.15s, box-shadow 0.15s;
+          position: relative;
         }
 
         .msg-item:hover {
@@ -157,6 +215,8 @@ export default function Messages({ token, onOpenConversation }) {
         .msg-content {
           flex: 1;
           min-width: 0;
+          /* right padding so text doesn't go under the delete btn */
+          padding-right: 70px;
         }
 
         .msg-header {
@@ -166,16 +226,8 @@ export default function Messages({ token, onOpenConversation }) {
           margin-bottom: 0.25rem;
         }
 
-        .msg-name {
-          font-weight: 600;
-          font-size: 0.95rem;
-          color: #1a1a1a;
-        }
-
-        .msg-time {
-          font-size: 0.75rem;
-          color: #888;
-        }
+        .msg-name { font-weight: 600; font-size: 0.95rem; color: #1a1a1a; }
+        .msg-time { font-size: 0.75rem; color: #888; }
 
         .msg-item-info {
           font-size: 0.8rem;
@@ -191,17 +243,10 @@ export default function Messages({ token, onOpenConversation }) {
           text-overflow: ellipsis;
         }
 
-        html.dark-mode .msg-item {
-          background: #1e1e1e;
-        }
-
-        html.dark-mode .msg-name {
-          color: #fff;
-        }
-
-        html.dark-mode .msg-preview {
-          color: #aaa;
-        }
+        html.dark-mode .msg-item { background: #1e1e1e; }
+        html.dark-mode .msg-name { color: #fff; }
+        html.dark-mode .msg-preview { color: #aaa; }
+        html.dark-mode .msg-item-info { color: #888; }
       `}</style>
     </div>
   );
