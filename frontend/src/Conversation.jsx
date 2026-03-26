@@ -11,6 +11,8 @@ export default function Conversation({ token, conversationId, newChatData, onBac
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [pendingImageUrl, setPendingImageUrl] = useState(null);
+  const [lightboxUrl, setLightboxUrl] = useState(null);
   const [error, setError] = useState("");
   const [currentConvId, setCurrentConvId] = useState(conversationId);
   const messagesEndRef = useRef(null);
@@ -77,7 +79,8 @@ export default function Conversation({ token, conversationId, newChatData, onBac
 
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || sending) return;
+    const trimmed = newMessage.trim();
+    if ((!trimmed && !pendingImageUrl) || sending || uploadingImage) return;
 
     const receiverId = newChatData?.sellerId || conversation?.other_user?.userid;
     const itemId = newChatData?.itemId || conversation?.item?.itemid;
@@ -91,7 +94,11 @@ export default function Conversation({ token, conversationId, newChatData, onBac
     setSending(true);
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
-      const payload = { receiverid: receiverId, messagecontent: newMessage.trim() };
+      const messagecontent = pendingImageUrl
+        ? `${IMAGE_PREFIX}${pendingImageUrl}${trimmed ? `\n${trimmed}` : ""}`
+        : trimmed;
+
+      const payload = { receiverid: receiverId, messagecontent };
       if (requestId) payload.requestid = requestId;
       else payload.itemid = itemId;
 
@@ -107,6 +114,8 @@ export default function Conversation({ token, conversationId, newChatData, onBac
       if (response.ok) {
         const data = await response.json();
         setNewMessage("");
+        setPendingImageUrl(null);
+        if (imageInputRef.current) imageInputRef.current.value = "";
         if (!currentConvId && data.conversationid) {
           setCurrentConvId(data.conversationid);
           if (onConversationCreated) onConversationCreated(data.conversationid);
@@ -139,15 +148,6 @@ export default function Conversation({ token, conversationId, newChatData, onBac
       return;
     }
 
-    const receiverId = newChatData?.sellerId || conversation?.other_user?.userid;
-    const itemId = newChatData?.itemId || conversation?.item?.itemid;
-    const requestId = newChatData?.requestId || conversation?.request?.requestid;
-
-    if (!receiverId || (!itemId && !requestId)) {
-      showToast("Cannot send image — missing conversation data", "error");
-      return;
-    }
-
     setUploadingImage(true);
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
@@ -175,43 +175,12 @@ export default function Conversation({ token, conversationId, newChatData, onBac
       }
 
       const { url } = await uploadRes.json();
-
-      const payload = {
-        receiverid: receiverId,
-        messagecontent: `${IMAGE_PREFIX}${url}`,
-      };
-      if (requestId) payload.requestid = requestId;
-      else payload.itemid = itemId;
-
-      const sendRes = await fetch(`${apiBaseUrl}/messages/send`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (sendRes.ok) {
-        const data = await sendRes.json();
-        showToast("Photo sent!");
-        if (!currentConvId && data.conversationid) {
-          setCurrentConvId(data.conversationid);
-          if (onConversationCreated) onConversationCreated(data.conversationid);
-          loadConversation(data.conversationid);
-        } else {
-          loadConversation(currentConvId);
-        }
-      } else {
-        const err = await sendRes.json();
-        showToast(err.detail || "Failed to send photo", "error");
-      }
+      setPendingImageUrl(url);
     } catch (err) {
       console.error("Image send error:", err);
-      showToast("Failed to send photo", "error");
+      showToast("Failed to upload photo", "error");
     } finally {
       setUploadingImage(false);
-      if (imageInputRef.current) imageInputRef.current.value = "";
     }
   };
 
@@ -260,7 +229,21 @@ export default function Conversation({ token, conversationId, newChatData, onBac
   };
 
   const isImageMessage = (content) => content && content.startsWith(IMAGE_PREFIX);
-  const getImageUrl = (content) => content.slice(IMAGE_PREFIX.length);
+  const getImageUrl = (content) => {
+    const rest = (content || "").slice(IMAGE_PREFIX.length);
+    const newlineIdx = rest.indexOf("\n");
+    return newlineIdx === -1 ? rest : rest.slice(0, newlineIdx);
+  };
+  const getImageCaption = (content) => {
+    const rest = (content || "").slice(IMAGE_PREFIX.length);
+    const newlineIdx = rest.indexOf("\n");
+    if (newlineIdx === -1) return "";
+    return rest.slice(newlineIdx + 1).trim();
+  };
+  const clearPendingImage = () => {
+    setPendingImageUrl(null);
+    if (imageInputRef.current) imageInputRef.current.value = "";
+  };
 
   if (loading) {
     return (
@@ -338,7 +321,7 @@ export default function Conversation({ token, conversationId, newChatData, onBac
                       title="Unsend message"
                       onClick={() => handleUnsend(msg.messageid)}
                     >
-                      ×
+                      x
                     </button>
                   )}
                   <div className={`conv-bubble ${msg.is_mine ? "mine" : "theirs"}`}>
@@ -348,8 +331,11 @@ export default function Conversation({ token, conversationId, newChatData, onBac
                           src={getImageUrl(msg.messagecontent)}
                           alt="Sent photo"
                           className="conv-msg-image"
-                          onClick={() => window.open(getImageUrl(msg.messagecontent), "_blank")}
+                          onClick={() => setLightboxUrl(getImageUrl(msg.messagecontent))}
                         />
+                        {getImageCaption(msg.messagecontent) ? (
+                          <p className="conv-image-caption">{getImageCaption(msg.messagecontent)}</p>
+                        ) : null}
                         <span className="conv-time">{formatTime(msg.messagetimestamp)}</span>
                       </>
                     ) : (
@@ -378,39 +364,81 @@ export default function Conversation({ token, conversationId, newChatData, onBac
           onChange={handleImageSelect}
         />
 
-        {/* Image upload button */}
-        <button
-          type="button"
-          className="conv-img-btn"
-          title="Send a photo"
-          onClick={() => imageInputRef.current?.click()}
-          disabled={uploadingImage || sending}
-        >
-          {uploadingImage ? (
-            <span className="conv-img-uploading">...</span>
-          ) : (
-            <img src="/camera.png" alt="Send photo" />
-          )}
-        </button>
+        <div className="conv-composer">
+          {pendingImageUrl ? (
+            <div className="conv-attach-preview">
+              <img src={pendingImageUrl} alt="Attachment preview" className="conv-attach-img" />
+              <button
+                type="button"
+                className="conv-attach-remove"
+                title="Remove photo"
+                onClick={clearPendingImage}
+                disabled={sending || uploadingImage}
+              >
+                x
+              </button>
+            </div>
+          ) : null}
 
-        <input
-          type="text"
-          className="conv-input"
-          placeholder="Type a message..."
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          disabled={sending || uploadingImage}
-        />
-        <button
-          type="submit"
-          className="conv-send-btn"
-          disabled={!newMessage.trim() || sending || uploadingImage}
-        >
-          {sending ? "..." : "Send"}
-        </button>
+          <div className="conv-composer-row">
+            {/* Image upload button */}
+            <button
+              type="button"
+              className="conv-img-btn"
+              title={pendingImageUrl ? "Replace photo" : "Add a photo"}
+              onClick={() => imageInputRef.current?.click()}
+              disabled={uploadingImage || sending}
+            >
+              {uploadingImage ? (
+                <span className="conv-img-uploading">...</span>
+              ) : (
+                <img src="/camera.png" alt="Add photo" />
+              )}
+            </button>
+
+            <input
+              type="text"
+              className="conv-input"
+              placeholder={pendingImageUrl ? "Add a message (optional)..." : "Type a message..."}
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              disabled={sending || uploadingImage}
+            />
+            <button
+              type="submit"
+              className="conv-send-btn"
+              disabled={(!newMessage.trim() && !pendingImageUrl) || sending || uploadingImage}
+            >
+              {sending ? "..." : "Send"}
+            </button>
+          </div>
+        </div>
       </form>
 
       <ToastContainer toasts={toasts} />
+
+      {lightboxUrl ? (
+        <div
+          className="conv-lightbox"
+          role="dialog"
+          aria-modal="true"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setLightboxUrl(null);
+          }}
+        >
+          <div className="conv-lightbox-inner">
+            <button
+              type="button"
+              className="conv-lightbox-close"
+              aria-label="Close"
+              onClick={() => setLightboxUrl(null)}
+            >
+              x
+            </button>
+            <img src={lightboxUrl} alt="Enlarged" className="conv-lightbox-img" />
+          </div>
+        </div>
+      ) : null}
 
       <style>{`
         .conv-page {
@@ -492,6 +520,35 @@ export default function Conversation({ token, conversationId, newChatData, onBac
         .conv-bubble-wrap.mine { justify-content: flex-end; }
         .conv-bubble-wrap.theirs { justify-content: flex-start; }
 
+        .conv-unsend-btn {
+          position: absolute;
+          top: 6px;
+          right: 6px;
+          width: 22px;
+          height: 22px;
+          border-radius: 999px;
+          border: none;
+          background: #ef4444;
+          color: #fff;
+          font-weight: 700;
+          font-size: 12px;
+          cursor: pointer;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.12s ease, transform 0.12s ease;
+          z-index: 2;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .conv-bubble-wrap.mine:hover .conv-unsend-btn,
+        .conv-unsend-btn:hover,
+        .conv-unsend-btn:focus-visible {
+          opacity: 1;
+          pointer-events: auto;
+          transform: scale(1.05);
+        }
+
         .conv-bubble {
           max-width: 70%;
           padding: 0.75rem 1rem;
@@ -502,6 +559,8 @@ export default function Conversation({ token, conversationId, newChatData, onBac
           background: #f0c040;
           color: #1a1a1a;
           border-bottom-right-radius: 4px;
+          padding-top: 1rem;
+          padding-right: 2.25rem;
         }
         .conv-bubble.theirs {
           background: #fff;
@@ -515,11 +574,57 @@ export default function Conversation({ token, conversationId, newChatData, onBac
 
         .conv-input-wrap {
           display: flex;
-          gap: 0.5rem;
-          align-items: center;
           padding: 1rem 1.5rem;
           background: #fff;
           border-top: 1px solid #e2e8f0;
+        }
+
+        .conv-composer { width: 100%; display: flex; flex-direction: column; gap: 0.5rem; }
+        .conv-composer-row { display: flex; gap: 0.5rem; align-items: center; }
+
+        .conv-img-btn {
+          width: 44px;
+          height: 44px;
+          border-radius: 999px;
+          border: 2px solid #e2e8f0;
+          background: #fff;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .conv-img-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .conv-img-btn img { width: 20px; height: 20px; }
+
+        .conv-attach-preview {
+          position: relative;
+          width: 100%;
+          max-height: 220px;
+          border-radius: 14px;
+          overflow: hidden;
+          border: 1px solid #e2e8f0;
+          background: #fff;
+        }
+        .conv-attach-img {
+          width: 100%;
+          max-height: 220px;
+          object-fit: contain;
+          display: block;
+          background: #0b0b0b;
+        }
+        .conv-attach-remove {
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          width: 28px;
+          height: 28px;
+          border-radius: 999px;
+          border: none;
+          background: rgba(239, 68, 68, 0.95);
+          color: #fff;
+          font-weight: 700;
+          cursor: pointer;
         }
 
         .conv-input {
@@ -548,6 +653,60 @@ export default function Conversation({ token, conversationId, newChatData, onBac
         .conv-send-btn:hover:not(:disabled) { background: #e0b030; }
         .conv-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+        .conv-msg-image {
+          width: 100%;
+          max-width: 320px;
+          border-radius: 12px;
+          display: block;
+          cursor: pointer;
+        }
+        .conv-image-caption {
+          margin-top: 0.5rem;
+          margin-bottom: 0.25rem;
+          white-space: pre-wrap;
+        }
+
+        .conv-lightbox {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.55);
+          backdrop-filter: blur(8px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 24px;
+          z-index: 9999;
+        }
+        .conv-lightbox-inner {
+          position: relative;
+          max-width: min(1000px, 92vw);
+          max-height: 86vh;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+          background: #0b0b0b;
+        }
+        .conv-lightbox-img {
+          display: block;
+          max-width: min(1000px, 92vw);
+          max-height: 86vh;
+          object-fit: contain;
+        }
+        .conv-lightbox-close {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          width: 34px;
+          height: 34px;
+          border-radius: 999px;
+          border: none;
+          background: rgba(0,0,0,0.6);
+          color: #fff;
+          font-weight: 800;
+          cursor: pointer;
+          z-index: 2;
+        }
+
         html.dark-mode .conv-header,
         html.dark-mode .conv-input-wrap {
           background: #1a1a1a;
@@ -558,6 +717,8 @@ export default function Conversation({ token, conversationId, newChatData, onBac
         html.dark-mode .conv-name { color: #fff; }
         html.dark-mode .conv-input { background: #2a2a2a; border-color: #333; color: #fff; }
         html.dark-mode .conv-date-divider span { background: #333; color: #888; }
+        html.dark-mode .conv-img-btn { background: #1a1a1a; border-color: #333; }
+        html.dark-mode .conv-attach-preview { background: #1a1a1a; border-color: #333; }
       `}</style>
     </div>
   );
