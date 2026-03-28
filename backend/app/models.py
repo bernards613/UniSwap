@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from .database import Base
 
@@ -29,6 +29,7 @@ class Listing(Base):
     category = Column(String, nullable=False)
     location = Column(String, nullable=False)
     photo = Column(String)
+    photos = Column(Text)  # JSON array of image URLs, max 7; legacy rows use `photo` only
     price = Column(Float, nullable=False)
     description = Column(String)
     status = Column(String, default="Available")

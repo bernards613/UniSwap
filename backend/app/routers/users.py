@@ -4,6 +4,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime
 from app.database import get_db
 from app import models, schemas, auth
+from app.routers.listings import listing_photo_bundle
 from app.auth import (
     hash_password,
     verify_password,
@@ -189,13 +190,15 @@ def get_bookmarked_listings(
     for b in bookmarks:
         if b.item:
             seller = b.item.seller
+            bundle = listing_photo_bundle(b.item)
             results.append({
                 "bookmarkid": b.bookmarkid,
                 "itemid": b.item.itemid,
                 "title": b.item.title,
                 "category": b.item.category,
                 "location": b.item.location,
-                "photo": b.item.photo,
+                "photo": bundle["photo"],
+                "photos": bundle["photos"],
                 "price": b.item.price,
                 "description": b.item.description,
                 "status": b.item.status,
@@ -226,13 +229,15 @@ def get_purchase_history(
     for p in purchases:
         if p.item:
             seller = p.item.seller
+            bundle = listing_photo_bundle(p.item)
             results.append({
                 "transactionid": p.transactionid,
                 "itemid": p.item.itemid,
                 "title": p.item.title,
                 "category": p.item.category,
                 "location": p.item.location,
-                "photo": p.item.photo,
+                "photo": bundle["photo"],
+                "photos": bundle["photos"],
                 "price": p.item.price,
                 "description": p.item.description,
                 "status": p.item.status,

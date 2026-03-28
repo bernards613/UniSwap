@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text, inspect
 from app.routers import users, listings, messages, transactions, buyer_requests
 from app.database import Base, engine
@@ -25,6 +24,27 @@ def migrate_listing_title():
         print("Listing table: title column added.")
     except Exception as e:
         print(f"Listing title migration note: {e}")
+
+
+def migrate_listing_photos_column():
+    """Add photos JSON column to listing table if missing (SQLite / Postgres)."""
+    try:
+        insp = inspect(engine)
+        if "listing" not in insp.get_table_names():
+            return
+        cols = {c["name"] for c in insp.get_columns("listing")}
+        if "photos" in cols:
+            return
+        dialect = engine.dialect.name
+        with engine.connect() as conn:
+            if dialect == "sqlite":
+                conn.execute(text("ALTER TABLE listing ADD COLUMN photos TEXT"))
+            else:
+                conn.execute(text("ALTER TABLE listing ADD COLUMN photos TEXT"))
+            conn.commit()
+        print("Listing table: photos column added.")
+    except Exception as e:
+        print(f"Listing photos migration note: {e}")
 
 
 def migrate_conversation_table():
@@ -65,6 +85,7 @@ def create_tables():
         print("Initializing database tables...")
         Base.metadata.create_all(bind=engine)
         migrate_listing_title()
+        migrate_listing_photos_column()
         migrate_conversation_table()
         print("Database tables initialized successfully!")
     except Exception as e:
@@ -92,7 +113,19 @@ app.include_router(listings.router)
 app.include_router(messages.router)
 app.include_router(transactions.router)
 app.include_router(buyer_requests.router)
-app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# NOTE: The /static mount below is kept only for backward compatibility with any
+# existing listings/messages that were created before the photo-storage change and
+# still have http://localhost:8000/static/... URLs stored in the database.
+# All new images are stored as base64 data URLs directly in PostgreSQL.
+# Once all legacy rows are gone this block (and the static/ folder) can be removed.
+try:
+    from fastapi.staticfiles import StaticFiles
+    import os
+    if os.path.isdir("static"):
+        app.mount("/static", StaticFiles(directory="static"), name="static")
+except Exception:
+    pass  # No static folder present — that's fine
 
 
 @app.get("/")
