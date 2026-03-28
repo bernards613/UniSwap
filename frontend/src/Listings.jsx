@@ -2,6 +2,8 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import CreateListingModal from "./CreateListingModal.jsx";
 import EditListingModal from "./EditListingModal.jsx";
 import ListingDetailView from "./ListingDetailView.jsx";
+import ListingPhotoCarousel from "./ListingPhotoCarousel.jsx";
+import { listingPhotoUrls } from "./listingPhotos.jsx";
 import ListingHoverPanel, { PANEL_WIDTH } from "./ListingHoverPanel.jsx";
 import { useToast, ToastContainer } from "./Toast.jsx";
 import "./marketplace.css";
@@ -252,7 +254,7 @@ export default function Listings({ onMessageSeller }) {
                 className={`mp-listing-card ${hoveredCardId === item.itemid ? "hover-hide-overlay" : ""}`}
                 onClick={() => item.sellerid !== currentUserId && setDetailListing(item)}
               >
-                <div className="mp-listing-card-bg" style={{ backgroundImage: item.photo ? `url(${item.photo})` : "none" }} />
+                <ListingPhotoCarousel urls={listingPhotoUrls(item)} variant="card" />
                 <div className="mp-listing-overlay">
                   <span className="mp-listing-status-badge mp-listing-status-badge--corner" style={{ backgroundColor: statusColor(item.status) }}>
                     {item.status || "Available"}
@@ -278,7 +280,7 @@ export default function Listings({ onMessageSeller }) {
 
       {/* Modals */}
       {showCreateModal && (
-        <CreateListingModal token={token} onClose={() => { setShowCreateModal(false); loadListings(); }} />
+        <CreateListingModal onClose={() => { setShowCreateModal(false); loadListings(); }} />
       )}
       {editingListing && (
         <EditListingModal

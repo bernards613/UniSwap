@@ -148,7 +148,14 @@ export default function Messages({ token, onOpenConversation }) {
                   {conv.last_message?.is_mine && (
                     <span style={{ color: "#888" }}>You: </span>
                   )}
-                  {conv.last_message?.content || "No messages yet"}
+                  {conv.last_message?.is_image ? (
+                    <span className="msg-preview-photo">
+                      <img src="/camera.png" alt="" className="msg-preview-photo-icon" />
+                      Photo
+                    </span>
+                  ) : (
+                    conv.last_message?.content || "No messages yet"
+                  )}
                 </div>
               </div>
 
@@ -162,7 +169,7 @@ export default function Messages({ token, onOpenConversation }) {
                   handleDeleteConversation(conv);
                 }}
               >
-                🗑 Delete
+                Delete
               </button>
             </div>
           ))}

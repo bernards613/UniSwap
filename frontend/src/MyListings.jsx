@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import EditListingModal from "./EditListingModal.jsx";
+import ListingPhotoCarousel from "./ListingPhotoCarousel.jsx";
+import { listingPhotoUrls } from "./listingPhotos.jsx";
 import ConfirmModal from "./ConfirmModal.jsx";
 import { useToast, ToastContainer } from "./Toast.jsx";
 import "./marketplace.css";
@@ -144,14 +146,7 @@ export default function MyListings() {
               <div
                 className={`mp-listing-card ${hoveredCardId === item.itemid ? "show-actions" : ""}`}
               >
-                <div
-                  className="mp-listing-card-bg"
-                  style={{
-                    backgroundImage: item.photo
-                      ? `url(${item.photo})`
-                      : "none",
-                  }}
-                />
+                <ListingPhotoCarousel urls={listingPhotoUrls(item)} variant="card" />
                 <div className="mp-listing-overlay">
                   <span className="mp-listing-overlay-left">{productName(item)}</span>
                   <span className="mp-listing-overlay-right">

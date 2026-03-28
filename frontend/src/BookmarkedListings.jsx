@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import ConfirmModal from "./ConfirmModal.jsx";
 import ListingDetailView from "./ListingDetailView.jsx";
+import ListingPhotoCarousel from "./ListingPhotoCarousel.jsx";
+import { listingPhotoUrls } from "./listingPhotos.jsx";
 import ListingHoverPanel, { PANEL_WIDTH } from "./ListingHoverPanel.jsx";
 import { useToast, ToastContainer } from "./Toast.jsx";
 import "./marketplace.css";
@@ -187,7 +189,7 @@ export default function BookmarkedListings({ token, onMessageSeller }) {
                 className={`mp-listing-card ${hoveredCardId === b.itemid ? "hover-hide-overlay" : ""}`}
                 onClick={() => setDetailListing(b)}
               >
-                <div className="mp-listing-card-bg" style={{ backgroundImage: b.photo ? `url(${b.photo})` : "none" }} />
+                <ListingPhotoCarousel urls={listingPhotoUrls(b)} variant="card" />
                 <div className="mp-listing-overlay">
                   <span className="mp-listing-status-badge mp-listing-status-badge--corner" style={{ backgroundColor: statusColor(b.status) }}>
                     {b.status || "Available"}

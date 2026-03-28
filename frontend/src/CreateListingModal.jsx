@@ -1,6 +1,17 @@
 import { useState } from "react";
 import { useToast, ToastContainer } from "./Toast.jsx";
 
+const MAX_PHOTOS = 7;
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error("Failed to read image"));
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function CreateListingModal({ onClose }) {
   const { toasts, showToast } = useToast();
   const [formData, setFormData] = useState({
@@ -9,16 +20,39 @@ export default function CreateListingModal({ onClose }) {
     location: "",
     price: "",
     description: "",
-    photo: null,
   });
+  const [photoFiles, setPhotoFiles] = useState([]);
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === "photo") {
-      setFormData({ ...formData, photo: files[0] });
-    } else {
-      setFormData({ ...formData, [name]: value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handlePhotosChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const merged = [...photoFiles];
+    for (const f of files) {
+      if (!f.type.startsWith("image/")) {
+        showToast("Please select image files only.", "error");
+        continue;
+      }
+      if (f.size > 8 * 1024 * 1024) {
+        showToast("Each image must be under 8MB.", "error");
+        continue;
+      }
+      if (merged.length >= MAX_PHOTOS) {
+        showToast(`You can add up to ${MAX_PHOTOS} photos.`, "error");
+        break;
+      }
+      merged.push(f);
     }
+    setPhotoFiles(merged);
+    e.target.value = "";
+  };
+
+  const removePhotoAt = (index) => {
+    setPhotoFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const wordCount = formData.description
@@ -34,8 +68,8 @@ export default function CreateListingModal({ onClose }) {
       showToast("Please enter a title (product name) for your listing.", "error");
       return;
     }
-    if (!formData.photo) {
-      showToast("Please upload a photo for your listing.", "error");
+    if (photoFiles.length === 0) {
+      showToast("Please add at least one photo (up to 7).", "error");
       return;
     }
     if (isOverWordLimit) {
@@ -50,15 +84,7 @@ export default function CreateListingModal({ onClose }) {
         return;
       }
 
-      let photoData = null;
-      if (formData.photo) {
-        photoData = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = () => reject(new Error("Failed to read image"));
-          reader.readAsDataURL(formData.photo);
-        });
-      }
+      const photos = await Promise.all(photoFiles.map((f) => readFileAsDataURL(f)));
 
       const response = await fetch(`${apiBaseUrl}/listings/create`, {
         method: "POST",
@@ -72,7 +98,7 @@ export default function CreateListingModal({ onClose }) {
           location: formData.location,
           price: parseFloat(formData.price),
           description: formData.description,
-          photo: photoData,
+          photos,
         }),
       });
 
@@ -169,20 +195,37 @@ export default function CreateListingModal({ onClose }) {
           </div>
 
           <div className="form-section">
-            <div className="form-section-title">Photo</div>
+            <div className="form-section-title">Photos (1–{MAX_PHOTOS})</div>
             <div className="form-group">
-              <label>Image (required)</label>
+              <label>Add images</label>
               <input
                 type="file"
-                name="photo"
                 accept="image/*"
-                onChange={handleChange}
-                required
+                multiple
+                onChange={handlePhotosChange}
+                disabled={photoFiles.length >= MAX_PHOTOS}
               />
-              {!formData.photo && (
-                <span className="form-hint">You must upload a photo to post this listing.</span>
-              )}
+              <span className="form-hint">
+                {photoFiles.length} / {MAX_PHOTOS} selected — first photo is the cover.
+              </span>
             </div>
+            {photoFiles.length > 0 && (
+              <div className="create-listing-photo-grid">
+                {photoFiles.map((file, i) => (
+                  <div key={`${file.name}-${i}`} className="create-listing-photo-tile">
+                    <img src={URL.createObjectURL(file)} alt="" />
+                    <button
+                      type="button"
+                      className="create-listing-photo-remove"
+                      onClick={() => removePhotoAt(i)}
+                      aria-label="Remove photo"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="modal-buttons">
@@ -192,7 +235,7 @@ export default function CreateListingModal({ onClose }) {
             <button
               type="submit"
               className="submit-button"
-              disabled={isOverWordLimit}
+              disabled={isOverWordLimit || photoFiles.length === 0}
             >
               Create Listing
             </button>
@@ -200,6 +243,51 @@ export default function CreateListingModal({ onClose }) {
         </form>
       </div>
       <ToastContainer toasts={toasts} />
+      <style>{`
+        .create-listing-photo-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+          gap: 0.5rem;
+          margin-top: 0.75rem;
+        }
+        .create-listing-photo-tile {
+          position: relative;
+          aspect-ratio: 1;
+          border-radius: 8px;
+          overflow: hidden;
+          border: 1px solid #e2e8f0;
+          background: #f8f9fa;
+        }
+        .create-listing-photo-tile img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+        .create-listing-photo-remove {
+          position: absolute;
+          top: 4px;
+          right: 4px;
+          width: 22px;
+          height: 22px;
+          border-radius: 999px;
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          background: rgba(0, 0, 0, 0.45);
+          backdrop-filter: blur(6px);
+          color: #fff;
+          font-size: 14px;
+          line-height: 1;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0;
+        }
+        html.dark-mode .create-listing-photo-tile {
+          border-color: #333;
+          background: #1a1a1a;
+        }
+      `}</style>
     </div>
   );
 }

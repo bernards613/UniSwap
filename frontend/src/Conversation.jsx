@@ -520,35 +520,6 @@ export default function Conversation({ token, conversationId, newChatData, onBac
         .conv-bubble-wrap.mine { justify-content: flex-end; }
         .conv-bubble-wrap.theirs { justify-content: flex-start; }
 
-        .conv-unsend-btn {
-          position: absolute;
-          top: 6px;
-          right: 6px;
-          width: 22px;
-          height: 22px;
-          border-radius: 999px;
-          border: none;
-          background: #ef4444;
-          color: #fff;
-          font-weight: 700;
-          font-size: 12px;
-          cursor: pointer;
-          opacity: 0;
-          pointer-events: none;
-          transition: opacity 0.12s ease, transform 0.12s ease;
-          z-index: 2;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .conv-bubble-wrap.mine:hover .conv-unsend-btn,
-        .conv-unsend-btn:hover,
-        .conv-unsend-btn:focus-visible {
-          opacity: 1;
-          pointer-events: auto;
-          transform: scale(1.05);
-        }
-
         .conv-bubble {
           max-width: 70%;
           padding: 0.75rem 1rem;
@@ -613,20 +584,6 @@ export default function Conversation({ token, conversationId, newChatData, onBac
           display: block;
           background: #0b0b0b;
         }
-        .conv-attach-remove {
-          position: absolute;
-          top: 8px;
-          right: 8px;
-          width: 28px;
-          height: 28px;
-          border-radius: 999px;
-          border: none;
-          background: rgba(239, 68, 68, 0.95);
-          color: #fff;
-          font-weight: 700;
-          cursor: pointer;
-        }
-
         .conv-input {
           flex: 1;
           padding: 0.75rem 1rem;
@@ -692,21 +649,6 @@ export default function Conversation({ token, conversationId, newChatData, onBac
           max-height: 86vh;
           object-fit: contain;
         }
-        .conv-lightbox-close {
-          position: absolute;
-          top: 10px;
-          right: 10px;
-          width: 34px;
-          height: 34px;
-          border-radius: 999px;
-          border: none;
-          background: rgba(0,0,0,0.6);
-          color: #fff;
-          font-weight: 800;
-          cursor: pointer;
-          z-index: 2;
-        }
-
         html.dark-mode .conv-header,
         html.dark-mode .conv-input-wrap {
           background: #1a1a1a;

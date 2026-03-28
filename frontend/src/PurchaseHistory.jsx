@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import ListingDetailView from "./ListingDetailView.jsx";
+import ListingPhotoCarousel from "./ListingPhotoCarousel.jsx";
+import { listingPhotoUrls } from "./listingPhotos.jsx";
 import "./marketplace.css";
 
 export default function PurchaseHistory({ token }) {
@@ -102,7 +104,7 @@ export default function PurchaseHistory({ token }) {
                 className={`mp-listing-card mp-listing-card--purchase ${hoveredCardId === p.transactionid ? "hover-hide-overlay" : ""}`}
                 onClick={() => setDetailPurchase(p)}
               >
-                <div className="mp-listing-card-bg" style={{ backgroundImage: p.photo ? `url(${p.photo})` : "none" }} />
+                <ListingPhotoCarousel urls={listingPhotoUrls(p)} variant="card" />
                 <div className="mp-listing-overlay mp-purchase-overlay">
                   <span className="mp-purchase-overlay-seller">by {sellerName(p)}</span>
                   <span className="mp-purchase-overlay-price">Purchased for ${parseFloat(p.price).toFixed(2)}</span>

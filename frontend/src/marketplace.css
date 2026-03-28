@@ -445,6 +445,144 @@ html.dark-mode .mp-pill:hover {
   background-repeat: no-repeat;
 }
 
+/* Listing image carousel (grid cards: controls on hover; detail modal: always visible) */
+.listing-carousel {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+.listing-carousel--empty {
+  background: linear-gradient(135deg, #fdf3c8 0%, #fce98a 100%);
+}
+
+html.dark-mode .listing-carousel--empty {
+  background: linear-gradient(135deg, #2a2510 0%, #3a3210 100%);
+}
+
+.listing-carousel-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.listing-carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 4;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition:
+    opacity 0.2s ease,
+    background 0.15s;
+}
+
+.listing-carousel--card .listing-carousel-btn {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mp-listing-card:hover .listing-carousel--card .listing-carousel-btn {
+  opacity: 0.92;
+  pointer-events: auto;
+}
+
+.listing-carousel--detail .listing-carousel-btn {
+  opacity: 0.92;
+}
+
+.listing-carousel-btn:hover {
+  background: rgba(0, 0, 0, 0.52);
+}
+
+.listing-carousel-btn--prev {
+  left: 10px;
+}
+
+.listing-carousel-btn--next {
+  right: 10px;
+}
+
+.listing-carousel-dots {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  transition: opacity 0.2s ease;
+}
+
+.listing-carousel--card .listing-carousel-dots {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mp-listing-card:hover .listing-carousel--card .listing-carousel-dots {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.listing-carousel--detail .listing-carousel-dots {
+  opacity: 1;
+}
+
+.listing-carousel-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  border: none;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition:
+    transform 0.15s,
+    background 0.15s;
+}
+
+.listing-carousel-dot.active {
+  background: #fff;
+  transform: scale(1.25);
+}
+
+.listing-detail-image-section .listing-carousel {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+}
+
+.listing-detail-image-section .listing-carousel-bg {
+  min-height: 200px;
+}
+
 .mp-listing-overlay {
   position: absolute;
   inset: 0;
@@ -893,6 +1031,7 @@ html.dark-mode .mp-pill:hover {
 }
 
 .listing-detail-image-section {
+  position: relative;
   width: 75%;
   flex: 0 0 75%;
   min-width: 0;
@@ -1409,6 +1548,7 @@ html.dark-mode .conv-img-btn img {
   position: relative;
 }
 
+/* Glass-style controls (match listing close / dark overlay buttons) */
 .conv-unsend-btn {
   position: absolute;
   top: 6px;
@@ -1416,8 +1556,10 @@ html.dark-mode .conv-img-btn img {
   width: 22px;
   height: 22px;
   border-radius: 999px;
-  border: none;
-  background: #ef4444;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   color: #fff;
   font-weight: 700;
   line-height: 1;
@@ -1425,7 +1567,6 @@ html.dark-mode .conv-img-btn img {
   cursor: pointer;
   opacity: 0;
   pointer-events: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1435,7 +1576,16 @@ html.dark-mode .conv-img-btn img {
     transform 0.12s ease;
   z-index: 10;
 }
-.conv-unsend-btn:hover { background: #dc2626; }
+.conv-unsend-btn:hover {
+  background: rgba(0, 0, 0, 0.52);
+}
+html.dark-mode .conv-unsend-btn {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+html.dark-mode .conv-unsend-btn:hover {
+  background: rgba(0, 0, 0, 0.65);
+}
 .conv-bubble-wrap.mine:hover .conv-unsend-btn {
   opacity: 1;
   pointer-events: auto;
@@ -1445,6 +1595,71 @@ html.dark-mode .conv-img-btn img {
   opacity: 1;
   pointer-events: auto;
   transform: scale(1.05);
+}
+
+.conv-attach-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  padding: 0;
+  background: rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  z-index: 2;
+}
+.conv-attach-remove:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.58);
+}
+.conv-attach-remove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+html.dark-mode .conv-attach-remove {
+  background: rgba(0, 0, 0, 0.55);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+html.dark-mode .conv-attach-remove:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.conv-lightbox-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.15s;
+}
+.conv-lightbox-close:hover {
+  background: rgba(0, 0, 0, 0.62);
 }
 
 /* Reserve space so text doesn't sit under the unsend button */
@@ -1462,21 +1677,57 @@ html.dark-mode .conv-img-btn img {
   right: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  background: #ef4444;
-  border: none;
+  background: rgba(55, 65, 81, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 8px;
-  padding: 0.35rem 0.6rem;
+  padding: 0.35rem 0.65rem;
   cursor: pointer;
-  color: #fff;
+  color: rgba(255, 255, 255, 0.96);
   font-size: 0.75rem;
   font-weight: 600;
   transition: background 0.15s;
   z-index: 5;
 }
-.msg-delete-conv-btn:hover { background: #dc2626; }
-.msg-item:hover .msg-delete-conv-btn { display: flex; align-items: center; gap: 4px; }
+.msg-delete-conv-btn:hover {
+  background: rgba(75, 85, 99, 0.75);
+}
+html.dark-mode .msg-delete-conv-btn {
+  background: rgba(30, 30, 30, 0.72);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.92);
+}
+html.dark-mode .msg-delete-conv-btn:hover {
+  background: rgba(50, 50, 50, 0.88);
+}
+.msg-item:hover .msg-delete-conv-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
 .msg-delete-conv-btn img {
   width: 12px;
   height: 12px;
   filter: brightness(0) saturate(100%) invert(100%);
+  opacity: 0.9;
+}
+
+.msg-preview-photo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  vertical-align: middle;
+}
+.msg-preview-photo-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  flex-shrink: 0;
+  opacity: 0.75;
+  filter: brightness(0) saturate(100%) invert(45%);
+}
+html.dark-mode .msg-preview-photo-icon {
+  filter: brightness(0) saturate(100%) invert(70%);
+  opacity: 0.85;
 }

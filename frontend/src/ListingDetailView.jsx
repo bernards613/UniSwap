@@ -1,7 +1,6 @@
-/**
- * Full listing detail view: large image (left ~75%), product info and actions (right).
- * Optional purchaseDate (ISO string) for purchase history: shows date/time and hides Purchase/Bookmark.
- */
+import ListingPhotoCarousel from "./ListingPhotoCarousel.jsx";
+import { listingPhotoUrls } from "./listingPhotos.jsx";
+
 export default function ListingDetailView({ listing, onClose, onPurchase, onBookmark, onRemoveBookmark, onMessage, statusColor, purchaseDate }) {
   if (!listing) return null;
 
@@ -32,10 +31,7 @@ export default function ListingDetailView({ listing, onClose, onPurchase, onBook
         <button type="button" className="listing-detail-close" onClick={onClose} aria-label="Close">×</button>
         <div className="listing-detail-layout">
           <div className="listing-detail-image-section">
-            <div
-              className="listing-detail-image"
-              style={{ backgroundImage: listing.photo ? `url(${listing.photo})` : "none" }}
-            />
+            <ListingPhotoCarousel urls={listingPhotoUrls(listing)} variant="detail" />
           </div>
 
           <div className="listing-detail-info">
