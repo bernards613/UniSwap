@@ -213,6 +213,16 @@
   animation: shake 0.3s ease;
 }
 
+/* Success */
+.auth-success {
+  background: rgba(34, 197, 94, 0.15);
+  color: #86efac;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+}
+
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   25%       { transform: translateX(-6px); }

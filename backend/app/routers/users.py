@@ -8,6 +8,7 @@ from app.routers.listings import listing_photo_bundle
 from app.auth import (
     hash_password,
     verify_password,
+    validate_password,
     create_access_token,
     get_current_user
 )
@@ -21,6 +22,12 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         existing = db.query(models.User).filter(models.User.username == user.username).first()
         if existing:
             raise HTTPException(status_code=400, detail="Username already taken")
+
+        # Validate password meets minimum requirements
+        try:
+            validate_password(user.password)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
 
         # Hash the password
         hashed_pw = hash_password(user.password)
@@ -136,6 +143,49 @@ def remove_bookmark(
     db.delete(bookmark)
     db.commit()
     return {"message": "Bookmark removed"}
+
+@router.put("/change-password")
+def change_password(
+    password_data: schemas.PasswordChange,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    try:
+        # Verify that the old password matches the current user's password
+        if not verify_password(password_data.old_password, current_user.passwordhash):
+            raise HTTPException(status_code=401, detail="Current password is incorrect")
+
+        # Check that new password and confirm password match
+        if password_data.new_password != password_data.confirm_password:
+            raise HTTPException(status_code=400, detail="New passwords do not match")
+
+        # Validate new password meets minimum requirements
+        try:
+            validate_password(password_data.new_password)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+        # Ensure new password is different from old password
+        if verify_password(password_data.new_password, current_user.passwordhash):
+            raise HTTPException(status_code=400, detail="New password must be different from current password")
+
+        # Hash the new password and update
+        new_hashed_pw = hash_password(password_data.new_password)
+        current_user.passwordhash = new_hashed_pw
+        db.commit()
+        db.refresh(current_user)
+
+        return {"message": "Password changed successfully"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        print(f"Error changing password: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error changing password: {str(e)}"
+        )
 
 @router.get("/me", response_model=schemas.User)
 def get_me(current_user: models.User = Depends(get_current_user)):

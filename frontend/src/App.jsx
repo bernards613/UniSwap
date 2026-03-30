@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Login from "./Login.jsx";
 import { CreateAccount } from "./CreateAccount.jsx";
+import { ChangePassword } from "./ChangePassword.jsx";
 import Settings from "./Settings.jsx";
 import Listings from "./Listings.jsx";
 import Header from "./Header.jsx";
@@ -176,7 +177,13 @@ function App() {
       {screen === "buyerrequests" && <BuyerRequests token={token} onMessageBuyer={handleMessageBuyer} />}
       {screen === "mylistings" && <MyListings />}
       {screen === "myrequests" && <MyRequests />}
-      {screen === "settings" && <Settings />}
+      {screen === "settings" && <Settings onNavigate={setScreen} />}
+      {screen === "changepassword" && (
+        <ChangePassword
+          onChangePasswordSuccess={() => setScreen("settings")}
+          onCancel={() => setScreen("settings")}
+        />
+      )}
       {screen === "bookmarks" && <BookmarkedListings token={token} onMessageSeller={handleMessageSeller} />}
       {screen === "purchases" && <PurchaseHistory token={token} />}
       {screen === "messages" && (

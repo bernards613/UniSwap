@@ -117,20 +117,142 @@ html.dark-mode .nav-btn-active:hover {
 
 /* Settings */
 .settings {
-  padding: 30px;
-  border-radius: 12px;
-  text-align: center;
-  background: transparent;
+  padding: 2rem;
+  min-height: 100vh;
+  background: var(--bg);
 }
 
-.settings button {
-  background: var(--link);
-  color: #1a1a1a;
+.settings-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.settings-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: var(--text);
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.settings-item:hover {
+  background: var(--card-hover);
+  border-color: var(--link);
+}
+
+.settings-item-content {
+  flex: 1;
+}
+
+.settings-item-title {
+  font-size: 1rem;
   font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  color: var(--text);
 }
 
-.settings button:hover {
-  background: var(--link-hover);
+.settings-item-description {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.settings-toggle-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: transform 0.2s ease;
+}
+
+.settings-toggle-btn:hover {
+  transform: scale(1.1);
+}
+
+.settings-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+  margin-left: 1rem;
+}
+
+.settings-toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.settings-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.3s;
+  border-radius: 26px;
+}
+
+.settings-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.settings-toggle-switch input:checked + .settings-toggle-slider {
+  background-color: #f0c040;
+}
+
+.settings-toggle-switch input:checked + .settings-toggle-slider:before {
+  transform: translateX(24px);
+}
+
+.settings-action-btn {
+  background: linear-gradient(135deg, #f0c040 0%, #e0a820 100%);
+  color: #1a1a1a;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  margin-left: 1rem;
+}
+
+.settings-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(240, 192, 64, 0.3);
+}
+
+.settings-action-btn:active {
+  transform: translateY(0);
 }
 
 /* Listings */

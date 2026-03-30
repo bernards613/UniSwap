@@ -19,6 +19,12 @@ def hash_password(password: str):
 def verify_password(password: str, stored_hash: str):
     return hash_password(password) == stored_hash
 
+def validate_password(password: str):
+    """Validate password meets minimum requirements (6+ characters)"""
+    if len(password) < 6:
+        raise ValueError("Password must be at least 6 characters")
+    return True
+
 def create_access_token(data: dict):
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)

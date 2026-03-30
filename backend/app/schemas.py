@@ -8,6 +8,11 @@ class UserCreate(BaseModel):
     password: str
     institution: Optional[str] = None
 
+class PasswordChange(BaseModel):
+    old_password: str
+    new_password: str
+    confirm_password: str
+
 class User(BaseModel):
     userid: int
     firstname: str
