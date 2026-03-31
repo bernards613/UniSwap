@@ -1,7 +1,21 @@
+import { useState, useEffect } from "react";
 import ListingPhotoCarousel from "./ListingPhotoCarousel.jsx";
 import { listingPhotoUrls } from "./listingPhotos.jsx";
+import { StarRating, SellerReviewsModal } from "./ReviewModal.jsx";
 
 export default function ListingDetailView({ listing, onClose, onPurchase, onBookmark, onRemoveBookmark, onMessage, statusColor, purchaseDate }) {
+  const [sellerReviewData, setSellerReviewData] = useState(null);
+  const [showSellerReviews, setShowSellerReviews] = useState(false);
+
+  useEffect(() => {
+    if (!listing?.sellerid) return;
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+    fetch(`${apiBaseUrl}/reviews/seller/${listing.sellerid}`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data) setSellerReviewData(data); })
+      .catch(() => {});
+  }, [listing?.sellerid]);
+
   if (!listing) return null;
 
   const isPurchase = Boolean(purchaseDate);
@@ -42,7 +56,27 @@ export default function ListingDetailView({ listing, onClose, onPurchase, onBook
               {status}
             </span>
             <h2 className="listing-detail-name">{productName}</h2>
-            <p className="listing-detail-seller">by {sellerName}</p>
+            <p className="listing-detail-seller">
+              by {sellerName}
+              {sellerReviewData && (
+                <button
+                  type="button"
+                  className="listing-detail-seller-rating"
+                  onClick={() => setShowSellerReviews(true)}
+                  title="View seller reviews"
+                >
+                  {sellerReviewData.average_rating != null ? (
+                    <>
+                      <StarRating rating={sellerReviewData.average_rating} size="0.75rem" />
+                      <span className="listing-detail-rating-num">{sellerReviewData.average_rating}</span>
+                      <span className="listing-detail-rating-count">({sellerReviewData.total_reviews})</span>
+                    </>
+                  ) : (
+                    <span className="listing-detail-rating-count">No reviews yet</span>
+                  )}
+                </button>
+              )}
+            </p>
 
             <p className="listing-detail-location">
               <img src="/location.png" alt="" className="listing-detail-icon-location" />
@@ -104,6 +138,16 @@ export default function ListingDetailView({ listing, onClose, onPurchase, onBook
           </div>
         </div>
       </div>
+
+      {showSellerReviews && sellerReviewData && (
+        <SellerReviewsModal
+          sellerUsername={sellerReviewData.seller_username}
+          reviews={sellerReviewData.reviews}
+          averageRating={sellerReviewData.average_rating}
+          totalReviews={sellerReviewData.total_reviews}
+          onClose={() => setShowSellerReviews(false)}
+        />
+      )}
     </div>
   );
 }

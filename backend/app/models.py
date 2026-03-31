@@ -114,3 +114,19 @@ class BuyerRequest(Base):
     posteddate = Column(DateTime)
 
     user = relationship("User")
+
+
+# ------------------- REVIEW -------------------
+class Review(Base):
+    __tablename__ = "review"
+
+    reviewid = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    reviewerid = Column(Integer, ForeignKey("users.userid"), nullable=False)
+    sellerid = Column(Integer, ForeignKey("users.userid"), nullable=False)
+    transactionid = Column(Integer, ForeignKey("transaction.transactionid"), nullable=False, unique=True)
+    rating = Column(Integer, nullable=False)
+    comment = Column(String(300), nullable=True)
+    reviewdate = Column(DateTime)
+
+    reviewer = relationship("User", foreign_keys=[reviewerid])
+    seller = relationship("User", foreign_keys=[sellerid])

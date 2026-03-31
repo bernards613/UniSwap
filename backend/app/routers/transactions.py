@@ -43,4 +43,10 @@ def purchase_listing(
     db.commit()
     db.refresh(transaction)
 
-    return {"message": "Purchase successful", "transactionid": transaction.transactionid}
+    seller = db.query(models.User).filter(models.User.userid == listing.sellerid).first()
+    return {
+        "message": "Purchase successful",
+        "transactionid": transaction.transactionid,
+        "sellerid": listing.sellerid,
+        "seller_username": seller.username if seller else "Seller",
+    }

@@ -177,7 +177,7 @@ function App() {
       {screen === "buyerrequests" && <BuyerRequests token={token} onMessageBuyer={handleMessageBuyer} />}
       {screen === "mylistings" && <MyListings />}
       {screen === "myrequests" && <MyRequests />}
-      {screen === "settings" && <Settings onNavigate={setScreen} />}
+      {screen === "settings" && <Settings onNavigate={setScreen} onAccountDeleted={clearSession} />}
       {screen === "changepassword" && (
         <ChangePassword
           onChangePasswordSuccess={() => setScreen("settings")}

@@ -5,6 +5,7 @@ import ListingDetailView from "./ListingDetailView.jsx";
 import ListingPhotoCarousel from "./ListingPhotoCarousel.jsx";
 import { listingPhotoUrls } from "./listingPhotos.jsx";
 import ListingHoverPanel, { PANEL_WIDTH } from "./ListingHoverPanel.jsx";
+import ReviewModal from "./ReviewModal.jsx";
 import { useToast, ToastContainer } from "./Toast.jsx";
 import "./marketplace.css";
 
@@ -32,6 +33,8 @@ export default function Listings({ onMessageSeller }) {
   const [statusFilter, setStatusFilter] = useState("All");
 
   const [hoveredCardId, setHoveredCardId] = useState(null);
+  const [reviewPrompt, setReviewPrompt] = useState(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const longHoverTimerRef = useRef(null);
   const cardWrapRefs = useRef({});
   const LONG_HOVER_MS = 1000;
@@ -97,17 +100,21 @@ export default function Listings({ onMessageSeller }) {
     );
   };
 
-  // PURCHASE HANDLER
   const handlePurchase = async (itemid) => {
     try {
-      const response = await fetch(`http://localhost:8000/transactions/purchase/${itemid}`, {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+      const response = await fetch(`${apiBaseUrl}/transactions/purchase/${itemid}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
       if (response.ok) {
-        showToast("Purchase successful!");
         loadListings();
+        setDetailListing(null);
+        setReviewPrompt({
+          transactionId: data.transactionid,
+          sellerUsername: data.seller_username || "Seller",
+        });
       } else {
         showToast(data.detail || "Purchase failed", "error");
       }
@@ -300,6 +307,28 @@ export default function Listings({ onMessageSeller }) {
           onBookmark={handleBookmark}
           onMessage={onMessageSeller}
           statusColor={statusColor}
+        />
+      )}
+
+      {reviewPrompt && !showReviewModal && (
+        <div className="review-prompt-overlay">
+          <div className="review-prompt-card">
+            <p className="review-prompt-text">Purchase successful! Would you like to review <strong>{reviewPrompt.sellerUsername}</strong>?</p>
+            <div className="review-prompt-actions">
+              <button className="review-prompt-skip" onClick={() => { setReviewPrompt(null); showToast("Purchase successful!"); }}>Skip</button>
+              <button className="review-prompt-review" onClick={() => setShowReviewModal(true)}>Review {reviewPrompt.sellerUsername}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showReviewModal && reviewPrompt && (
+        <ReviewModal
+          sellerUsername={reviewPrompt.sellerUsername}
+          transactionId={reviewPrompt.transactionId}
+          token={token}
+          onClose={() => { setShowReviewModal(false); setReviewPrompt(null); }}
+          onSubmitted={() => { setShowReviewModal(false); setReviewPrompt(null); showToast("Review submitted!"); }}
         />
       )}
 

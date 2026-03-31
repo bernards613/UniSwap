@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
 from datetime import datetime
+from pathlib import Path
 from app.database import get_db
 from app import models, schemas, auth
 from app.routers.listings import listing_photo_bundle
@@ -12,6 +14,10 @@ from app.auth import (
     create_access_token,
     get_current_user
 )
+
+
+class DeleteAccountRequest(BaseModel):
+    password: str
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -299,6 +305,72 @@ def get_purchase_history(
             })
 
     return results
+
+@router.delete("/me")
+def delete_account(
+    body: DeleteAccountRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    if not verify_password(body.password, current_user.passwordhash):
+        raise HTTPException(status_code=401, detail="Incorrect password")
+
+    uid = current_user.userid
+
+    def _remove_listing_images(listing):
+        """Remove on-disk images for a listing (legacy static paths only)."""
+        for field in (listing.photo, listing.photos):
+            if not field:
+                continue
+            urls = []
+            if field.startswith("["):
+                try:
+                    import json
+                    urls = json.loads(field)
+                except Exception:
+                    pass
+            else:
+                urls = [field]
+            for url in urls:
+                if "/static/images/" in str(url):
+                    name = str(url).rstrip("/").split("/static/images/")[-1]
+                    if name and ".." not in name and "/" not in name:
+                        p = Path("static/images") / name
+                        if p.is_file():
+                            p.unlink(missing_ok=True)
+
+    listings = db.query(models.Listing).filter(models.Listing.sellerid == uid).all()
+    for li in listings:
+        _remove_listing_images(li)
+
+    db.query(models.Review).filter(
+        (models.Review.reviewerid == uid) | (models.Review.sellerid == uid)
+    ).delete(synchronize_session=False)
+
+    db.query(models.Bookmark).filter(models.Bookmark.userid == uid).delete(synchronize_session=False)
+
+    db.query(models.Message).filter(
+        (models.Message.senderid == uid) | (models.Message.receiverid == uid)
+    ).delete(synchronize_session=False)
+
+    db.query(models.Conversation).filter(
+        (models.Conversation.buyerid == uid) | (models.Conversation.sellerid == uid)
+    ).delete(synchronize_session=False)
+
+    db.query(models.Transaction).filter(
+        (models.Transaction.buyerid == uid) | (models.Transaction.sellerid == uid)
+    ).delete(synchronize_session=False)
+
+    db.query(models.BuyerRequest).filter(models.BuyerRequest.userid == uid).delete(synchronize_session=False)
+
+    for li in listings:
+        db.delete(li)
+
+    db.delete(current_user)
+    db.commit()
+
+    return {"message": "Account deleted"}
+
 
 @router.get("/{user_id}", response_model=schemas.User)
 def get_user(user_id: int, db: Session = Depends(get_db)):

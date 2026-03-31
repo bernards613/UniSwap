@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { StarRating } from "./ReviewModal.jsx";
 import "./marketplace.css";
 
 const SUPPORTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
@@ -13,8 +14,10 @@ export default function Profile({ token, onProfilePictureUpdate }) {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editForm, setEditForm] = useState({ firstname: "", lastname: "", institution: "" });
+  const [myReviews, setMyReviews] = useState([]);
+  const [avgRating, setAvgRating] = useState(null);
 
-  useEffect(() => { loadProfile(); }, []);
+  useEffect(() => { loadProfile(); loadMyReviews(); }, []);
 
   const loadProfile = async () => {
     setLoading(true);
@@ -34,6 +37,20 @@ export default function Profile({ token, onProfilePictureUpdate }) {
       setError("Failed to connect to server");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadMyReviews = async () => {
+    try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+      const res = await fetch(`${apiBaseUrl}/reviews/mine`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) {
+        const data = await res.json();
+        setMyReviews(data.reviews || []);
+        setAvgRating(data.average_rating);
+      }
+    } catch (err) {
+      console.error("Error loading reviews:", err);
     }
   };
 
@@ -180,6 +197,39 @@ export default function Profile({ token, onProfilePictureUpdate }) {
             </>
           )}
         </div>
+
+        <div className="profile-details" style={{ marginTop: "1.5rem" }}>
+          <div className="profile-details-header">
+            <h2>My Reviews</h2>
+            {avgRating != null && (
+              <span style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.9rem", color: "#888" }}>
+                <StarRating rating={avgRating} size="1rem" />
+                <strong style={{ color: "var(--text, #1a1a1a)" }}>{avgRating}</strong>
+                ({myReviews.length} review{myReviews.length !== 1 ? "s" : ""})
+              </span>
+            )}
+          </div>
+          {myReviews.length === 0 ? (
+            <p style={{ color: "#888", fontSize: "0.9rem" }}>No reviews yet.</p>
+          ) : (
+            <div className="profile-reviews-list">
+              {myReviews.map((r) => (
+                <div key={r.reviewid} className="profile-review-item">
+                  <div className="profile-review-header">
+                    <span className="profile-review-user">@{r.reviewer_username}</span>
+                    <StarRating rating={r.rating} size="0.8rem" />
+                  </div>
+                  {r.comment && <p className="profile-review-comment">{r.comment}</p>}
+                  {r.reviewdate && (
+                    <span className="profile-review-date">
+                      {new Date(r.reviewdate).toLocaleDateString(undefined, { dateStyle: "medium" })}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <style>{`
@@ -256,6 +306,18 @@ export default function Profile({ token, onProfilePictureUpdate }) {
         html.dark-mode .profile-edit-btn:hover { background: #2a2a2a; }
         html.dark-mode .profile-cancel-btn { background: #2a2a2a; border-color: #444; color: #aaa; }
         html.dark-mode .profile-field { border-bottom-color: #333; }
+
+        .profile-reviews-list { display: flex; flex-direction: column; gap: 0.75rem; }
+        .profile-review-item { padding: 0.75rem 0; border-bottom: 1px solid #eee; }
+        .profile-review-item:last-child { border-bottom: none; }
+        .profile-review-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; }
+        .profile-review-user { font-size: 0.85rem; font-weight: 600; color: #1a1a1a; }
+        .profile-review-comment { margin: 0.25rem 0 0; font-size: 0.9rem; color: #555; line-height: 1.4; }
+        .profile-review-date { font-size: 0.75rem; color: #888; }
+
+        html.dark-mode .profile-review-item { border-bottom-color: #333; }
+        html.dark-mode .profile-review-user { color: #fff; }
+        html.dark-mode .profile-review-comment { color: #ccc; }
 
         @media (max-width: 600px) {
           .profile-header { flex-direction: column; text-align: center; }

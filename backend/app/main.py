@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text, inspect
-from app.routers import users, listings, messages, transactions, buyer_requests
+from app.routers import users, listings, messages, transactions, buyer_requests, reviews
 from app.database import Base, engine
 from app import models
 
@@ -113,6 +113,7 @@ app.include_router(listings.router)
 app.include_router(messages.router)
 app.include_router(transactions.router)
 app.include_router(buyer_requests.router)
+app.include_router(reviews.router)
 
 # NOTE: The /static mount below is kept only for backward compatibility with any
 # existing listings/messages that were created before the photo-storage change and
